@@ -39,6 +39,16 @@ function jsonOut(obj) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+/* วันที่-เวลาในชีตทุกจุด: DD/MM/YYYY และเวลา 24 ชม. (โซนเวลาไทย/ลาว GMT+7) */
+function fmtDT_(v) {
+  try { return Utilities.formatDate(new Date(v), "GMT+7", "dd/MM/yyyy HH:mm:ss"); }
+  catch (e) { return String(v); }
+}
+function fmtD_(v) {
+  try { return Utilities.formatDate(new Date(v), "GMT+7", "dd/MM/yyyy"); }
+  catch (e) { return String(v); }
+}
+
 function doGet(e) {
   var action = (e && e.parameter && e.parameter.action) || "";
   if (action === "getUsers") return jsonOut(getUsers());
@@ -221,7 +231,7 @@ var LINELOG_SHEET = "LineLog";
 function lineLog_(status, detail) {
   try {
     var sh = getSheet(LINELOG_SHEET, ["ts", "status", "detail"]);
-    sh.appendRow([new Date(), status, detail]);
+    sh.appendRow([fmtDT_(new Date()), status, detail]);
   } catch (e) {}
 }
 function getLineLog() {
@@ -259,7 +269,7 @@ var AUDIT_SHEET = "AuditLog";
 function logEvent(ev) {
   if (!ev) return;
   var sh = getSheet(AUDIT_SHEET, ["ts", "user", "name", "action", "target", "note"]);
-  sh.appendRow([ev.ts, ev.user || "", ev.by || "", ev.action || "", ev.target || "", ev.note || ""]);
+  sh.appendRow([fmtDT_(ev.ts), ev.user || "", ev.by || "", ev.action || "", ev.target || "", ev.note || ""]);
 }
 
 /* ---------- Photos (เก็บรูปใน Google Drive โฟลเดอร์ SugarDeliveryPhotos) ---------- */
@@ -286,11 +296,11 @@ function savePhoto(b) {
   var data = sh.getDataRange().getValues();
   for (var i = 1; i < data.length; i++) {
     if (String(data[i][0]) === String(b.uid) && Number(data[i][1]) === Number(b.index)) {
-      sh.getRange(i + 1, 1, 1, 5).setValues([[b.uid, b.index, url, f.getId(), new Date()]]);
+      sh.getRange(i + 1, 1, 1, 5).setValues([[b.uid, b.index, url, f.getId(), fmtDT_(new Date())]]);
       return;
     }
   }
-  sh.appendRow([b.uid, b.index, url, f.getId(), new Date()]);
+  sh.appendRow([b.uid, b.index, url, f.getId(), fmtDT_(new Date())]);
 }
 
 function getPhotoMap_() {
@@ -357,10 +367,10 @@ function getRecords() {
 function saveRecord(rec) {
   var sh = getSheet(RECORDS_SHEET, REC_HEADERS);
   var row = [
-    rec.uid, rec.date, rec.plate, rec.customer, rec.transport || "",
+    rec.uid, fmtD_(rec.date), rec.plate, rec.customer, rec.transport || "",
     rec.sugarType || "", rec.tons || "", (rec.lots || []).length,
     rec.status, rec.recordedBy ? rec.recordedBy.name : "",
-    new Date(), JSON.stringify(rec),
+    fmtDT_(new Date()), JSON.stringify(rec),
   ];
   var data = sh.getDataRange().getValues();
   for (var i = 1; i < data.length; i++) {

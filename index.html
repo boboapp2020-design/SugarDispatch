@@ -385,8 +385,21 @@
   .photobtn:active{background:var(--green-soft)}
   .photos{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
   .photos img{
-    width:72px;height:72px;object-fit:cover;border-radius:10px;
-    border:1px solid var(--line);
+    width:88px;height:88px;object-fit:cover;border-radius:10px;
+    border:1px solid var(--line);cursor:pointer;
+  }
+  .lightbox{
+    position:absolute;inset:0;z-index:120;
+    background:rgba(5,10,20,.9);backdrop-filter:blur(3px);
+    display:flex;align-items:center;justify-content:center;padding:18px;
+    cursor:zoom-out;
+  }
+  .lightbox[hidden]{display:none}
+  .lightbox img{max-width:100%;max-height:88%;border-radius:10px;object-fit:contain}
+  .lightbox .lbclose{
+    position:absolute;top:calc(14px + env(safe-area-inset-top));right:14px;
+    width:40px;height:40px;border-radius:13px;border:none;cursor:pointer;
+    background:rgba(255,255,255,.15);color:#fff;font-size:18px;
   }
 
   /* lots */
@@ -716,6 +729,10 @@
       <div>👨‍💻 พัฒนาโดย นายสุรศักดิ์ นามวรรณ</div>
     </div>
   </aside>
+  <div class="lightbox" id="lightbox" hidden>
+    <button class="lbclose" aria-label="ປິດ">✕</button>
+    <img id="lightimg" alt="ຮູບແນບ">
+  </div>
   <div class="modal" id="modal" hidden>
     <div class="mbox">
       <div class="mtitle"></div>
@@ -2419,7 +2436,10 @@ function renderDetail(){
             :failed.map(c=>`<div class="kv"><span class="k">${c.name}</span><span class="v"><span class="badge-bad">✕ ${c.b}</span></span></div>`).join("")}
         ${r.otherNote?`<div class="kv"><span class="k">ອື່ນໆ</span><span class="v">${esc(r.otherNote)}</span></div>`:""}
         ${(()=>{const ps=(r.photos&&r.photos.length)?r.photos:(r.photoUrls||[]);
-          return ps.length?`<div class="photos">${ps.map(p=>`<img src="${p}" alt="ຮູບສະພາບລົດ" loading="lazy">`).join("")}</div>`:""})()}
+          return ps.length?`<div class="photos">${ps.map(p=>{
+            const full=String(p).includes("thumbnail?id=")?String(p).replace(/sz=w\d+/,"sz=w1600"):p;
+            return `<img src="${p}" data-full="${full}" alt="ຮູບສະພາບລົດ ແຕະເພື່ອເບິ່ງເຕັມຈໍ" loading="lazy">`;
+          }).join("")}</div>`:""})()}
       </div>
       <div class="sec">
         <h3><span class="n">2</span> ສະພາບນ້ຳຕານ</h3>
@@ -2482,6 +2502,11 @@ function renderDetail(){
   `;
   const back=()=>{view={name:"home",filter:"all",q:""}; render()};
   app.querySelector("#dback").onclick=back;
+  app.querySelectorAll(".photos img").forEach(im=>im.onclick=()=>{
+    const lb=document.getElementById("lightbox");
+    document.getElementById("lightimg").src = im.dataset.full || im.src;
+    lb.hidden=false;
+  });
 
   const me=currentUser();
   const foot=app.querySelector("#dfoot");
@@ -2592,6 +2617,8 @@ function openDrawer(){
 }
 function closeDrawer(){ drawerEl.classList.remove("open"); drawerOv.hidden=true; }
 drawerOv.onclick = closeDrawer;
+const lightboxEl = document.getElementById("lightbox");
+lightboxEl.onclick = ()=>{ lightboxEl.hidden=true; document.getElementById("lightimg").src=""; };
 document.getElementById("drawerclose").onclick = closeDrawer;
 document.getElementById("sharelink").onclick = async()=>{
   if(navigator.share){
