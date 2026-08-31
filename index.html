@@ -562,6 +562,12 @@
   }
 
   /* ---------- login (SUGAR DISPATCH — committed light navy/gold branding) ---------- */
+  .loginmenu{
+    position:absolute;top:calc(12px + env(safe-area-inset-top));left:12px;z-index:5;
+    width:40px;height:40px;border-radius:13px;border:none;cursor:pointer;
+    background:rgba(22,41,75,.6);color:#fff;font-size:18px;
+    display:grid;place-items:center;backdrop-filter:blur(4px);
+  }
   .loginpage{
     flex:1;min-height:0;overflow:hidden;position:relative;
     background:#F3F7FB;color:#1F3A68;
@@ -696,7 +702,9 @@
       </details>
       <details class="dmanual">
         <summary>🔑 ປ່ຽນລະຫັດຜ່ານຂອງຂ້ອຍ</summary>
-        <div class="field" style="margin-top:10px"><label>ລະຫັດຜ່ານປັດຈຸບັນ</label>
+        <div class="field" style="margin-top:10px"><label>ຊື່ຜູ້ໃຊ້ (Username)</label>
+          <input id="pwuser" class="mono" autocapitalize="none" placeholder="ເຊັ່ນ QC01"></div>
+        <div class="field"><label>ລະຫັດຜ່ານປັດຈຸບັນ</label>
           <input type="password" id="pwold" class="mono" autocomplete="current-password"></div>
         <div class="field"><label>ລະຫັດຜ່ານໃໝ່ (ຢ່າງໜ້ອຍ 4 ຕົວ)</label>
           <input type="password" id="pwnew" class="mono" autocomplete="new-password"></div>
@@ -1041,6 +1049,7 @@ const WAVE_SVG = `<svg class="wavesvg" viewBox="0 0 430 70" preserveAspectRatio=
 function renderLogin(){
   app.innerHTML = `
     <div class="loginpage">
+      <button class="loginmenu" id="menubtn" aria-label="เมนู">☰</button>
       <img class="hero" src="${HERO_IMG}" alt="SUGAR DISPATCH — ระบบบันทึกการจ่ายออกน้ำตาล QC RECORD SYSTEM">
       <div class="loginbody">
         <div class="lfield">
@@ -1064,6 +1073,7 @@ function renderLogin(){
       ${WAVE_SVG}
     </div>
   `;
+  app.querySelector("#menubtn").onclick=openDrawer;
   app.querySelector("#leye").onclick=()=>{
     const p=app.querySelector("#lpass");
     p.type = p.type==="password" ? "text" : "password";
@@ -1509,7 +1519,6 @@ function renderHomeStaff(me){
   app.innerHTML = `
     <div class="appbar">
       <div class="row">
-        <button class="backbtn" id="menubtn" aria-label="ເມນູ">☰</button>
         <div style="flex:1;min-width:0">
           <h1>ບັນທຶກການສົ່ງມອບນ້ຳຕານ</h1>
           <div class="userchip">
@@ -1517,6 +1526,7 @@ function renderHomeStaff(me){
             <span class="rolebadge">${ROLE_NAMES[me.role]}</span>
           </div>
         </div>
+        <span class="formcode">Rev.07</span>
         <button class="backbtn" id="logout" aria-label="ອອກຈາກລະບົບ" title="ອອກຈາກລະບົບ">⏻</button>
       </div>
     </div>
@@ -1590,7 +1600,6 @@ function renderHomeStaff(me){
   app.querySelector("#logout").onclick=()=>{
     setSession(null); view={name:"login"}; render(); toast("ອອກຈາກລະບົບແລ້ວ");
   };
-  app.querySelector("#menubtn").onclick=openDrawer;
   const mr=app.querySelector("#mailreport");
   if(mr) mr.onclick=()=>{
     const r=buildMailReport();
@@ -1658,7 +1667,6 @@ function renderHome(){
   app.innerHTML = `
     <div class="appbar">
       <div class="row">
-        <button class="backbtn" id="menubtn" aria-label="ເມນູ">☰</button>
         <div style="flex:1;min-width:0">
           <h1>ບັນທຶກການສົ່ງມອບນ້ຳຕານ</h1>
           <div class="userchip">
@@ -1666,6 +1674,7 @@ function renderHome(){
             <span class="rolebadge">${me?ROLE_NAMES[me.role]:""}</span>
           </div>
         </div>
+        <span class="formcode">Rev.07</span>
         <button class="backbtn" id="logout" aria-label="ອອກຈາກລະບົບ" title="ອອກຈາກລະບົບ">⏻</button>
       </div>
     </div>
@@ -2575,7 +2584,12 @@ refreshRemote();
 const APP_URL = "https://boboapp2020-design.github.io/SugarDispatch/";
 const drawerEl = document.getElementById("drawer");
 const drawerOv = document.getElementById("drawerov");
-function openDrawer(){ drawerEl.classList.add("open"); drawerOv.hidden=false; }
+function openDrawer(){
+  drawerEl.classList.add("open"); drawerOv.hidden=false;
+  const me=currentUser();
+  const pu=document.getElementById("pwuser");
+  if(pu && me) pu.value=me.username;
+}
 function closeDrawer(){ drawerEl.classList.remove("open"); drawerOv.hidden=true; }
 drawerOv.onclick = closeDrawer;
 document.getElementById("drawerclose").onclick = closeDrawer;
@@ -2598,15 +2612,16 @@ document.getElementById("shareqr").onclick = async()=>{
   document.getElementById("sharelink").click();
 };
 document.getElementById("pwsave").onclick = ()=>{
-  const me = currentUser();
-  if(!me){ toast("⚠ ກະລຸນາເຂົ້າສູ່ລະບົບກ່ອນ"); return; }
+  const uname = document.getElementById("pwuser").value.trim();
   const oldp = document.getElementById("pwold").value;
   const newp = document.getElementById("pwnew").value;
-  if(oldp !== me.password){ toast("⚠ ລະຫັດຜ່ານປັດຈຸບັນບໍ່ຖືກຕ້ອງ"); return; }
+  if(!uname){ toast("⚠ ກະລຸນາປ້ອນຊື່ຜູ້ໃຊ້"); return; }
+  const u = users.find(x=>(x.username||"").toLowerCase()===uname.toLowerCase());
+  if(!u || oldp !== u.password){ toast("⚠ ຊື່ຜູ້ໃຊ້ ຫຼື ລະຫັດຜ່ານປັດຈຸບັນບໍ່ຖືກຕ້ອງ"); return; }
   if(newp.length < 4){ toast("⚠ ລະຫັດໃໝ່ຕ້ອງຢ່າງໜ້ອຍ 4 ຕົວ"); return; }
-  me.password = newp;
+  u.password = newp;
   saveUsers(); queuePush({action:"saveUsers", users});
-  audit("password_changed", "@"+me.username);
+  audit("password_changed", "@"+u.username);
   document.getElementById("pwold").value=""; document.getElementById("pwnew").value="";
   toast("✓ ປ່ຽນລະຫັດຜ່ານແລ້ວ");
 };
