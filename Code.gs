@@ -73,7 +73,25 @@ function doGet(e) {
  *    (manager.line.biz) → ตั้งค่า → การตอบกลับ → ปิด "ตอบกลับอัตโนมัติ"
  * 5. สแกน QR ของบอท (แท็บ Messaging API) เพิ่มเพื่อน → พิมพ์ Bot Check
  * ================================================================ */
-var LINE_TOKEN = "PASTE_TOKEN_HERE";
+/* token เก็บใน Script Properties — ตั้งครั้งเดียวด้วย saveTokenOnce() แล้วไม่หายอีก
+ * ต่อให้วางโค้ดใหม่ทับกี่รอบก็ตาม */
+function getLineToken_() {
+  return PropertiesService.getScriptProperties().getProperty("LINE_TOKEN") || "";
+}
+
+/* ===== ตั้ง token ครั้งเดียว =====
+ * 1. วาง token ระหว่างเครื่องหมายคำพูดข้างล่าง
+ * 2. เลือกฟังก์ชัน saveTokenOnce → กด Run → log ขึ้น ✅
+ * 3. (แนะนำ) ลบ token ออกจากบรรทัดนี้ได้เลย เพราะถูกเก็บถาวรแล้ว */
+function saveTokenOnce() {
+  var token = "PASTE_TOKEN_HERE";
+  if (!token || token === "PASTE_TOKEN_HERE") {
+    Logger.log("❌ ยังไม่ได้วาง token ในฟังก์ชันนี้");
+    return;
+  }
+  PropertiesService.getScriptProperties().setProperty("LINE_TOKEN", token.trim());
+  Logger.log("✅ บันทึก token ถาวรแล้ว — ต่อไปวางโค้ดใหม่ทับได้เลยไม่ต้องใส่ token อีก");
+}
 
 function doPost(e) {
   var body = JSON.parse(e.postData.contents);
@@ -187,14 +205,15 @@ function buildStatusFlex() {
 }
 
 function lineReplyFlex(replyToken, bubble) {
-  if (!LINE_TOKEN || LINE_TOKEN === "PASTE_TOKEN_HERE") {
-    lineLog_("SKIP", "LINE_TOKEN ยังไม่ได้ใส่");
+  var tok = getLineToken_();
+  if (!tok) {
+    lineLog_("SKIP", "ยังไม่ได้ตั้ง token — รัน saveTokenOnce ก่อน");
     return;
   }
   var resp = UrlFetchApp.fetch("https://api.line.me/v2/bot/message/reply", {
     method: "post",
     contentType: "application/json",
-    headers: { Authorization: "Bearer " + LINE_TOKEN },
+    headers: { Authorization: "Bearer " + tok },
     payload: JSON.stringify({
       replyToken: replyToken,
       messages: [{ type: "flex", altText: "🚛 SUGAR DISPATCH — สรุปสถานะงาน", contents: bubble }],
@@ -207,7 +226,7 @@ function lineReplyFlex(replyToken, bubble) {
     var resp2 = UrlFetchApp.fetch("https://api.line.me/v2/bot/message/reply", {
       method: "post",
       contentType: "application/json",
-      headers: { Authorization: "Bearer " + LINE_TOKEN },
+      headers: { Authorization: "Bearer " + tok },
       payload: JSON.stringify({
         replyToken: replyToken,
         messages: [{ type: "text", text: buildStatusText_() }],
@@ -243,11 +262,12 @@ function getLineLog() {
 }
 
 function lineReply(replyToken, text) {
-  if (!LINE_TOKEN || LINE_TOKEN === "PASTE_TOKEN_HERE") return;
+  var tok = getLineToken_();
+  if (!tok) return;
   UrlFetchApp.fetch("https://api.line.me/v2/bot/message/reply", {
     method: "post",
     contentType: "application/json",
-    headers: { Authorization: "Bearer " + LINE_TOKEN },
+    headers: { Authorization: "Bearer " + tok },
     payload: JSON.stringify({ replyToken: replyToken, messages: [{ type: "text", text: text }] }),
     muteHttpExceptions: true,
   });
@@ -257,7 +277,7 @@ function lineReply(replyToken, text) {
  * (2) เช็คว่า token ถูกต้อง — ดูผลใน Execution log */
 function testLineSetup() {
   var resp = UrlFetchApp.fetch("https://api.line.me/v2/bot/info", {
-    headers: { Authorization: "Bearer " + LINE_TOKEN },
+    headers: { Authorization: "Bearer " + getLineToken_() },
     muteHttpExceptions: true,
   });
   Logger.log(resp.getResponseCode() === 200
