@@ -59,7 +59,7 @@ function doGet(e) {
  *    → กด Verify (ต้องขึ้น Success) → เปิดสวิตช์ "Use webhook"
  * 4. ปิดข้อความตอบกลับอัตโนมัติ: LINE Official Account Manager
  *    (manager.line.biz) → ตั้งค่า → การตอบกลับ → ปิด "ตอบกลับอัตโนมัติ"
- * 5. สแกน QR ของบอท (แท็บ Messaging API) เพิ่มเพื่อน → พิมพ์ check
+ * 5. สแกน QR ของบอท (แท็บ Messaging API) เพิ่มเพื่อน → พิมพ์ Bot Check
  * ================================================================ */
 var LINE_TOKEN = "PASTE_TOKEN_HERE";
 
@@ -92,55 +92,100 @@ function deleteRecord(uid) {
 function handleLineWebhook(body) {
   body.events.forEach(function (ev) {
     if (ev.type === "message" && ev.message && ev.message.type === "text" && ev.replyToken) {
-      var txt = String(ev.message.text).trim().toLowerCase();
-      var triggers = ["check", "เช็ค", "เช็ก", "สถานะ", "status", "ตรวจ", "งาน"];
+      var txt = String(ev.message.text).trim().toLowerCase().replace(/\s+/g, " ");
+      var triggers = ["bot check", "botcheck", "bot เช็ค", "บอทเช็ค"];
       if (triggers.indexOf(txt) >= 0) {
-        lineReply(ev.replyToken, buildStatusReport());
+        lineReplyFlex(ev.replyToken, buildStatusFlex());
       }
     }
   });
   return jsonOut({ ok: true });
 }
 
-function buildStatusReport() {
+function statusCounts_() {
   var recs = getRecords();
   var c = { draft: 0, wait_check: 0, wait_approve: 0, returned: 0, rejected: 0, done: 0 };
   recs.forEach(function (r) {
     var s = r.status === "wait" ? "wait_check" : r.status;
     if (c[s] != null) c[s]++;
   });
-  var pending = c.draft + c.wait_check + c.wait_approve + c.returned + c.rejected;
-
   var today = Utilities.formatDate(new Date(), "GMT+7", "yyyy-MM-dd");
   var tRecs = recs.filter(function (r) { return r.date === today; });
   var tTons = 0;
   tRecs.forEach(function (r) { tTons += Number(r.tons) || 0; });
-
-  // รายการที่ค้าง (สูงสุด 8 รายการ)
-  var pendList = recs.filter(function (r) {
-    var s = r.status === "wait" ? "wait_check" : r.status;
-    return s !== "done";
-  }).slice(0, 8);
   var stName = { draft: "ร่าง", wait_check: "รอตรวจสอบ", wait_approve: "รออนุมัติ", returned: "ส่งกลับแก้ไข", rejected: "ไม่ผ่านอนุมัติ", wait: "รอตรวจสอบ" };
-  var lines = pendList.map(function (r) {
-    return "• " + r.plate + " — " + (stName[r.status] || r.status) +
-      (r.recordedBy ? " (" + r.recordedBy.username + ")" : "");
-  });
+  var pendList = recs.filter(function (r) { return r.status !== "done"; }).slice(0, 5)
+    .map(function (r) {
+      return "• " + r.plate + " — " + (stName[r.status] || r.status) +
+        (r.recordedBy ? " (" + r.recordedBy.username + ")" : "");
+    });
+  return {
+    c: c,
+    pending: c.draft + c.wait_check + c.wait_approve + c.returned + c.rejected,
+    tCount: tRecs.length,
+    tTons: Math.round(tTons * 100) / 100,
+    pendList: pendList,
+  };
+}
 
+function buildStatusFlex() {
+  var s = statusCounts_();
   var now = Utilities.formatDate(new Date(), "GMT+7", "dd/MM/yyyy HH:mm");
-  return "🚛 SUGAR DISPATCH\n" +
-    "━━━━━━━━━━━━━━\n" +
-    "📋 ค้างดำเนินการ: " + pending + " รายการ\n" +
-    "  📝 ร่าง: " + c.draft + "\n" +
-    "  🔎 รอตรวจสอบ: " + c.wait_check + "\n" +
-    "  ⏳ รออนุมัติ: " + c.wait_approve + "\n" +
-    "  ↩️ ส่งกลับแก้ไข: " + c.returned + "\n" +
-    "  ❌ ไม่ผ่านอนุมัติ: " + c.rejected + "\n" +
-    "✅ สำเร็จสะสม: " + c.done + " รายการ\n" +
-    "━━━━━━━━━━━━━━\n" +
-    "📅 วันนี้: " + tRecs.length + " คัน / " + (Math.round(tTons * 100) / 100) + " ตัน\n" +
-    (lines.length ? "━━━━━━━━━━━━━━\nรายการค้าง:\n" + lines.join("\n") + "\n" : "") +
-    "🕐 " + now;
+  function row(label, val, color) {
+    return { type: "box", layout: "horizontal", margin: "sm", contents: [
+      { type: "text", text: label, size: "sm", color: "#5C6B84", flex: 6 },
+      { type: "text", text: String(val), size: "sm", color: color || "#1C2A42", align: "end", weight: "bold", flex: 4 },
+    ]};
+  }
+  var bodyRows = [
+    { type: "box", layout: "horizontal", contents: [
+      { type: "text", text: "📋 ค้างดำเนินการ", size: "md", weight: "bold", color: "#1C2A42", flex: 6 },
+      { type: "text", text: s.pending + " รายการ", size: "md", weight: "bold",
+        color: s.pending > 0 ? "#C4453A" : "#2E8B57", align: "end", flex: 4 },
+    ]},
+    { type: "separator", margin: "md" },
+    row("📝 ร่าง", s.c.draft),
+    row("🔎 รอตรวจสอบ", s.c.wait_check, "#2C6E9B"),
+    row("⏳ รออนุมัติ", s.c.wait_approve, "#C9992E"),
+    row("↩️ ส่งกลับแก้ไข", s.c.returned, "#C4453A"),
+    row("❌ ไม่ผ่านอนุมัติ", s.c.rejected, "#C4453A"),
+    { type: "separator", margin: "md" },
+    row("✅ สำเร็จสะสม", s.c.done + " รายการ", "#2E8B57"),
+    row("📅 วันนี้", s.tCount + " คัน / " + s.tTons + " ตัน"),
+  ];
+  if (s.pendList.length) {
+    bodyRows.push({ type: "separator", margin: "md" });
+    bodyRows.push({ type: "text", text: "รายการค้างล่าสุด", size: "xs", weight: "bold", color: "#5C6B84", margin: "md" });
+    s.pendList.forEach(function (line) {
+      bodyRows.push({ type: "text", text: line, size: "xs", color: "#8DA0B5", wrap: true, margin: "sm" });
+    });
+  }
+  return {
+    type: "bubble",
+    header: { type: "box", layout: "vertical", backgroundColor: "#16294B", paddingAll: "16px", contents: [
+      { type: "text", text: "🚛 SUGAR DISPATCH", color: "#FFFFFF", weight: "bold", size: "lg" },
+      { type: "text", text: "สรุปสถานะงาน · " + now, color: "#C9992E", size: "xs", margin: "sm" },
+    ]},
+    body: { type: "box", layout: "vertical", paddingAll: "16px", contents: bodyRows },
+    footer: { type: "box", layout: "vertical", paddingAll: "12px", contents: [
+      { type: "button", style: "primary", color: "#1F3A68", height: "sm",
+        action: { type: "uri", label: "เปิดแอป SUGAR DISPATCH", uri: "https://boboapp2020-design.github.io/SugarDispatch/" } },
+    ]},
+  };
+}
+
+function lineReplyFlex(replyToken, bubble) {
+  if (!LINE_TOKEN || LINE_TOKEN === "PASTE_TOKEN_HERE") return;
+  UrlFetchApp.fetch("https://api.line.me/v2/bot/message/reply", {
+    method: "post",
+    contentType: "application/json",
+    headers: { Authorization: "Bearer " + LINE_TOKEN },
+    payload: JSON.stringify({
+      replyToken: replyToken,
+      messages: [{ type: "flex", altText: "🚛 SUGAR DISPATCH — สรุปสถานะงาน", contents: bubble }],
+    }),
+    muteHttpExceptions: true,
+  });
 }
 
 function lineReply(replyToken, text) {
