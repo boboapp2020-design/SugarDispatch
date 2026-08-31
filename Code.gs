@@ -39,13 +39,14 @@ function jsonOut(obj) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-/* วันที่-เวลาในชีตทุกจุด: DD/MM/YYYY และเวลา 24 ชม. (โซนเวลาไทย/ลาว GMT+7) */
+/* วันที่-เวลาในชีตทุกจุด: DD/MM/YYYY เวลา 24 ชม. (GMT+7)
+ * ใส่ ' นำหน้าเพื่อบังคับเป็นข้อความ — Sheets จะไม่แปลงรูปแบบเองอีก */
 function fmtDT_(v) {
-  try { return Utilities.formatDate(new Date(v), "GMT+7", "dd/MM/yyyy HH:mm:ss"); }
+  try { return "'" + Utilities.formatDate(new Date(v), "GMT+7", "dd/MM/yyyy HH:mm:ss"); }
   catch (e) { return String(v); }
 }
 function fmtD_(v) {
-  try { return Utilities.formatDate(new Date(v), "GMT+7", "dd/MM/yyyy"); }
+  try { return "'" + Utilities.formatDate(new Date(v), "GMT+7", "dd/MM/yyyy"); }
   catch (e) { return String(v); }
 }
 

@@ -1456,6 +1456,118 @@ function dashHTML(recs){
     </div>`;
 }
 
+/* ---- filtered report list (shared by reports tab, PDF and Excel export) ---- */
+function staffFilteredList(){
+  const f = view.f || {status:"all",from:"",to:"",sugar:"all",truck:"all",customer:"all",transport:"all",sort:"date_desc"};
+  let list = records.filter(r=>
+    (f.status==="all"||r.status===f.status) &&
+    (!f.from || r.date>=f.from) && (!f.to || r.date<=f.to) &&
+    (f.sugar==="all"||r.sugarType===f.sugar) &&
+    (f.truck==="all"||r.truckType===f.truck) &&
+    (f.customer==="all"||r.customer===f.customer) &&
+    (f.transport==="all"||r.transport===f.transport)
+  );
+  if(f.sort==="date_asc") list.sort((a,b)=>a.date.localeCompare(b.date)||a.id-b.id);
+  else if(f.sort==="tons_desc") list.sort((a,b)=>(+b.tons||0)-(+a.tons||0));
+  else list.sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);
+  return list;
+}
+
+/* ---- share a generated file (mobile share sheet, falls back to download) ---- */
+async function shareFile(filename, mime, content){
+  const blob = new Blob([content], {type:mime});
+  const file = new File([blob], filename, {type:mime});
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file], title:filename}); return; }
+    catch(e){ if(e && e.name==="AbortError") return; }
+  }
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
+  toast("⬇ ດາວໂຫຼດແລ້ວ: "+filename);
+}
+
+/* ---- Excel (CSV with BOM — opens directly in Excel) ---- */
+function buildReportCsv(list){
+  const esc2=v=>{const s=String(v==null?"":v); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
+  const head=["ວັນທີ","ທະບຽນລົດ","ລູກຄ້າ","ຂົນສົ່ງ","ປະເພດລົດ","ຊະນິດນ້ຳຕານ","ບັນຈຸ","TON","Lot","ກະສອບ","ສາງ","ສະຖານະ","ຜູ້ບັນທຶກ","ກວດສອບໂດຍ","ອະນຸມັດໂດຍ","Seal No.","ພະນັກງານຂັບລົດ","ຫົວໜ້າກະ","ເວລາເລີ່ມ","ຂື້ນສຳເລັດ"];
+  const rows=list.map(r=>[
+    isoToDmy(r.date), r.plate, r.customer||"", r.transport||"", r.truckType||"",
+    r.sugarType||"", r.pack||"", r.tons||0, r.lots.length,
+    r.lots.reduce((s,l)=>s+(+l.bags||0),0), r.bay||"",
+    STATUS[r.status]?STATUS[r.status][0]:r.status,
+    r.recordedBy?r.recordedBy.name+" ("+r.recordedBy.username+")":"",
+    r.checkedBy?r.checkedBy.name:"", r.approvedBy?r.approvedBy.name:"",
+    r.seal||"", r.driverName||"", r.logisticsName||"", r.timeStart||"", r.timeEnd||"",
+  ]);
+  return "﻿"+[head].concat(rows).map(row=>row.map(esc2).join(",")).join("\r\n");
+}
+
+/* ---- PDF (styled print view — user saves as PDF from the print dialog) ---- */
+function buildReportPrintHTML(list){
+  const now=new Date(); const p=n=>String(n).padStart(2,"0");
+  const nowStr=`${p(now.getDate())}/${p(now.getMonth()+1)}/${now.getFullYear()} ${p(now.getHours())}:${p(now.getMinutes())}`;
+  const me=currentUser();
+  const tons=list.reduce((s,r)=>s+(+r.tons||0),0);
+  const bags=list.reduce((s,r)=>s+r.lots.reduce((x,l)=>x+(+l.bags||0),0),0);
+  const rows=list.map((r,i)=>`<tr>
+    <td>${i+1}</td><td>${isoToDmy(r.date)}</td><td>${esc(r.plate)}</td>
+    <td>${esc(r.customer||"–")}</td><td>${esc(r.sugarType||"–")}</td>
+    <td class="num">${r.tons||0}</td><td class="num">${r.lots.reduce((s,l)=>s+(+l.bags||0),0)}</td>
+    <td>${esc(r.bay||"–")}</td><td>${STATUS[r.status]?STATUS[r.status][0]:r.status}</td>
+    <td>${r.recordedBy?esc(r.recordedBy.username):"–"}</td>
+  </tr>`).join("");
+  return `<!doctype html><html><head><meta charset="utf-8"><title>SUGAR DISPATCH Report</title><style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Noto Sans Lao Looped','Noto Sans Thai',sans-serif;color:#1C2A42;padding:24px;font-size:12px}
+    .hd{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #16294B;padding-bottom:10px;margin-bottom:12px}
+    h1{font-size:18px;color:#16294B}
+    .sub{font-size:11px;color:#5C6B84;margin-top:3px}
+    .gold{color:#C9992E;font-weight:bold}
+    .kpis{display:flex;gap:18px;margin:10px 0;font-size:12px}
+    .kpis b{font-size:15px}
+    table{width:100%;border-collapse:collapse;margin-top:8px}
+    th{background:#16294B;color:#fff;padding:6px 7px;text-align:left;font-size:11px}
+    td{padding:5px 7px;border-bottom:1px solid #DFE7F1;font-size:11px}
+    tr:nth-child(even) td{background:#F3F7FB}
+    .num{text-align:right;font-variant-numeric:tabular-nums}
+    .ft{margin-top:14px;font-size:10px;color:#8DA0B5;display:flex;justify-content:space-between}
+    @page{size:A4;margin:12mm}
+  </style></head><body>
+    <div class="hd">
+      <div><h1>🚛 SUGAR <span class="gold">DISPATCH</span></h1>
+        <div class="sub">ລາຍງານການຈ່າຍນ້ຳຕານ — ບໍລິສັດ ນ້ຳຕານມິດລາວ ຈຳກັດ</div></div>
+      <div style="text-align:right;font-size:11px">ອອກລາຍງານ: ${nowStr}<br>ໂດຍ: ${me?esc(me.name):"-"}</div>
+    </div>
+    <div class="kpis">
+      <div>ຈຳນວນ: <b>${list.length}</b> ໃບ</div>
+      <div>ລວມ: <b>${(+tons.toFixed(2)).toLocaleString()}</b> TON</div>
+      <div>ກະສອບ: <b>${bags.toLocaleString()}</b></div>
+    </div>
+    <table>
+      <thead><tr><th>#</th><th>ວັນທີ</th><th>ທະບຽນ</th><th>ລູກຄ້າ</th><th>ຊະນິດ</th><th>TON</th><th>ກະສອບ</th><th>ສາງ</th><th>ສະຖານະ</th><th>ຜູ້ບັນທຶກ</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="10">ບໍ່ມີຂໍ້ມູນ</td></tr>'}</tbody>
+    </table>
+    <div class="ft"><span>ML-FM-1610-012 : Rev.07</span><span>SUGAR DISPATCH — ${APP_URL}</span></div>
+  </body></html>`;
+}
+
+function exportReportPdf(){
+  const html=buildReportPrintHTML(staffFilteredList());
+  const fr=document.createElement("iframe");
+  fr.style.cssText="position:absolute;left:-10000px;top:0;width:900px;height:1200px";
+  document.body.appendChild(fr);
+  fr.srcdoc=html;
+  fr.onload=()=>{
+    setTimeout(()=>{
+      try{ fr.contentWindow.focus(); fr.contentWindow.print(); }catch(e){ toast("⚠ ເປີດໜ້າພິມບໍ່ໄດ້"); }
+      setTimeout(()=>fr.remove(), 60000);
+    }, 300);
+  };
+  toast("📄 ເລືອກ «Save as PDF» ໃນໜ້າພິມ ແລ້ວແຊຣ໌ໄດ້ເລີຍ");
+}
+
 /* ---- email summary report (mailto — opens the phone's mail app) ---- */
 function buildMailReport(){
   const now=new Date();
@@ -1516,17 +1628,7 @@ function renderHomeStaff(me){
   const tab = view.tab||"overview";
   const f = view.f = view.f || {status:"all",from:"",to:"",sugar:"all",truck:"all",customer:"all",transport:"all",sort:"date_desc"};
   const uniq = key => [...new Set(records.map(r=>r[key]).filter(Boolean))].sort();
-  let list = records.filter(r=>
-    (f.status==="all"||r.status===f.status) &&
-    (!f.from || r.date>=f.from) && (!f.to || r.date<=f.to) &&
-    (f.sugar==="all"||r.sugarType===f.sugar) &&
-    (f.truck==="all"||r.truckType===f.truck) &&
-    (f.customer==="all"||r.customer===f.customer) &&
-    (f.transport==="all"||r.transport===f.transport)
-  );
-  if(f.sort==="date_asc") list.sort((a,b)=>a.date.localeCompare(b.date)||a.id-b.id);
-  else if(f.sort==="tons_desc") list.sort((a,b)=>(+b.tons||0)-(+a.tons||0));
-  else list.sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);
+  let list = staffFilteredList();
   const groups={};
   if(f.sort!=="tons_desc") list.forEach(r=>{(groups[r.date]=groups[r.date]||[]).push(r)});
   const selOpts=(arr,cur)=>`<option value="all">— ທັງໝົດ —</option>`+
@@ -1592,6 +1694,10 @@ function renderHomeStaff(me){
               <span style="font-size:12.5px;color:var(--ink-2)">ພົບ <b class="mono">${list.length}</b> ລາຍການ</span>
               ${filtersOn?`<button class="chip" id="fclear">✕ ລ້າງຕົວກອງ</button>`:""}
             </div>
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <button class="btn" id="exppdf" style="flex:1;font-size:13px">📄 ແຊຣ໌ PDF</button>
+              <button class="btn" id="expxls" style="flex:1;font-size:13px">📊 ແຊຣ໌ Excel</button>
+            </div>
           </div>
           ${list.length===0?`<div class="empty">ບໍ່ພົບຂໍ້ມູນຕາມເງື່ອນໄຂ</div>`:""}
           ${f.sort==="tons_desc"
@@ -1640,6 +1746,14 @@ function renderHomeStaff(me){
   if(fc) fc.onclick=()=>{
     view.f={status:"all",from:"",to:"",sugar:"all",truck:"all",customer:"all",transport:"all",sort:view.f.sort};
     view.tab="reports"; renderHomeStaff(me);
+  };
+  const ep=app.querySelector("#exppdf");
+  if(ep) ep.onclick=exportReportPdf;
+  const ex=app.querySelector("#expxls");
+  if(ex) ex.onclick=()=>{
+    const now=new Date(); const p2=n=>String(n).padStart(2,"0");
+    const fn=`SugarDispatch-Report-${now.getFullYear()}${p2(now.getMonth()+1)}${p2(now.getDate())}.csv`;
+    shareFile(fn, "text/csv;charset=utf-8", buildReportCsv(staffFilteredList()));
   };
   // swipe between the two slides
   const sl=app.querySelector("#slides");
