@@ -235,6 +235,12 @@
     display:flex;align-items:center;gap:8px;
     font-size:13px;font-weight:700;color:var(--bad);margin:4px 2px 8px;
   }
+  .slides{
+    flex:1;min-height:0;display:flex;width:200%;
+    transition:transform .28s ease;touch-action:pan-y;
+  }
+  .slides.p2{transform:translateX(-50%)}
+  .slide{width:50%;flex:none;display:flex;flex-direction:column;min-height:0;position:relative}
   .tabbar{
     position:absolute;left:0;right:0;bottom:0;z-index:15;display:flex;gap:6px;
     background:color-mix(in srgb,var(--paper) 90%,transparent);
@@ -1196,8 +1202,144 @@ function dashHTML(recs){
     </div>`;
 }
 
+/* ---- staff home: slide 1 = overview + my tasks, slide 2 = all reports with filters ---- */
+function renderHomeStaff(me){
+  const tasks = myTasks(me);
+  const tab = view.tab||"overview";
+  const f = view.f = view.f || {status:"all",from:"",to:"",sugar:"all",truck:"all",customer:"all",transport:"all",sort:"date_desc"};
+  const uniq = key => [...new Set(records.map(r=>r[key]).filter(Boolean))].sort();
+  let list = records.filter(r=>
+    (f.status==="all"||r.status===f.status) &&
+    (!f.from || r.date>=f.from) && (!f.to || r.date<=f.to) &&
+    (f.sugar==="all"||r.sugarType===f.sugar) &&
+    (f.truck==="all"||r.truckType===f.truck) &&
+    (f.customer==="all"||r.customer===f.customer) &&
+    (f.transport==="all"||r.transport===f.transport)
+  );
+  if(f.sort==="date_asc") list.sort((a,b)=>a.date.localeCompare(b.date)||a.id-b.id);
+  else if(f.sort==="tons_desc") list.sort((a,b)=>(+b.tons||0)-(+a.tons||0));
+  else list.sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);
+  const groups={};
+  if(f.sort!=="tons_desc") list.forEach(r=>{(groups[r.date]=groups[r.date]||[]).push(r)});
+  const selOpts=(arr,cur)=>`<option value="all">— ທັງໝົດ —</option>`+
+    arr.map(v=>`<option value="${esc(v)}" ${cur===v?"selected":""}>${esc(v)}</option>`).join("");
+  const filtersOn = f.status!=="all"||f.from||f.to||f.sugar!=="all"||f.truck!=="all"||f.customer!=="all"||f.transport!=="all";
+
+  app.innerHTML = `
+    <div class="appbar">
+      <div class="row">
+        <div style="flex:1;min-width:0">
+          <h1>ບັນທຶກການສົ່ງມອບນ້ຳຕານ</h1>
+          <div class="userchip">
+            <span>👤 ${esc(me.name)}</span>
+            <span class="rolebadge">${ROLE_NAMES[me.role]}</span>
+          </div>
+        </div>
+        <span class="formcode">Rev.07</span>
+        <button class="backbtn" id="logout" aria-label="ອອກຈາກລະບົບ" title="ອອກຈາກລະບົບ">⏻</button>
+      </div>
+    </div>
+    <div class="slides ${tab==="reports"?"p2":""}" id="slides">
+      <div class="slide">
+        <div class="scroll">
+          ${dashHTML(records)}
+          <div class="tasklabel">📥 ວຽກທີ່ ${esc(me.username)} ຕ້ອງດຳເນີນການ (${tasks.length})</div>
+          ${tasks.length ? tasks.map(recCardHTML).join("") : `<div class="empty">✓ ບໍ່ມີວຽກຄ້າງ</div>`}
+          <div style="text-align:center;font-size:11px;color:var(--ink-3);padding:6px 0 4px">
+            ${apiUrl() ? (queue.length?`⏳ ລໍຖ້າຊິງຄ໌ ${queue.length} ລາຍການ`:"☁ ເຊື່ອມຕໍ່ Google Sheets ແລ້ວ") : "📴 ໂໝດ Offline"}
+          </div>
+        </div>
+      </div>
+      <div class="slide">
+        <div class="scroll">
+          <div class="sec">
+            <h3><span class="n">🔎</span> ຕົວກອງລາຍງານ</h3>
+            <div class="grid2">
+              <div class="field"><label>ປະເພດລາຍງານ (ສະຖານະ)</label>
+                <select data-f="status">
+                  <option value="all">— ທັງໝົດ —</option>
+                  ${Object.entries(STATUS).map(([k,v])=>`<option value="${k}" ${f.status===k?"selected":""}>${v[0]}</option>`).join("")}
+                </select></div>
+              <div class="field"><label>ຮຽງລຳດັບ</label>
+                <select data-f="sort">
+                  <option value="date_desc" ${f.sort==="date_desc"?"selected":""}>ວັນທີ ໃໝ່ → ເກົ່າ</option>
+                  <option value="date_asc" ${f.sort==="date_asc"?"selected":""}>ວັນທີ ເກົ່າ → ໃໝ່</option>
+                  <option value="tons_desc" ${f.sort==="tons_desc"?"selected":""}>TON ຫຼາຍ → ໜ້ອຍ</option>
+                </select></div>
+              <div class="field"><label>ຈາກວັນທີ</label>
+                <input type="date" data-f="from" value="${esc(f.from)}"></div>
+              <div class="field"><label>ຮອດວັນທີ</label>
+                <input type="date" data-f="to" value="${esc(f.to)}"></div>
+              <div class="field"><label>ຊະນິດນ້ຳຕານ</label>
+                <select data-f="sugar">${selOpts(uniq("sugarType"),f.sugar)}</select></div>
+              <div class="field"><label>ປະເພດລົດ</label>
+                <select data-f="truck">${selOpts(uniq("truckType"),f.truck)}</select></div>
+              <div class="field"><label>ລູກຄ້າ</label>
+                <select data-f="customer">${selOpts(uniq("customer"),f.customer)}</select></div>
+              <div class="field"><label>ບໍລິສັດຂົນສົ່ງ</label>
+                <select data-f="transport">${selOpts(uniq("transport"),f.transport)}</select></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+              <span style="font-size:12.5px;color:var(--ink-2)">ພົບ <b class="mono">${list.length}</b> ລາຍການ</span>
+              ${filtersOn?`<button class="chip" id="fclear">✕ ລ້າງຕົວກອງ</button>`:""}
+            </div>
+          </div>
+          ${list.length===0?`<div class="empty">ບໍ່ພົບຂໍ້ມູນຕາມເງື່ອນໄຂ</div>`:""}
+          ${f.sort==="tons_desc"
+            ? list.map(recCardHTML).join("")
+            : Object.entries(groups).map(([d,rs])=>`
+                <div class="daylabel">${fmtDate(d)}</div>
+                ${rs.map(recCardHTML).join("")}`).join("")}
+          <div style="height:8px"></div>
+        </div>
+      </div>
+    </div>
+    <div class="tabbar">
+      <button class="${tab==="overview"?"on":""}" data-tab="overview">
+        <span class="ic">📊</span>
+        <span>ພາບລວມ ${tasks.length?`<span class="tbadge">${tasks.length}</span>`:""}</span>
+      </button>
+      <button class="${tab==="reports"?"on":""}" data-tab="reports">
+        <span class="ic">🗂</span>
+        <span>ລາຍງານທັງໝົດ</span>
+      </button>
+    </div>
+  `;
+  app.querySelector("#logout").onclick=()=>{
+    setSession(null); view={name:"login"}; render(); toast("ອອກຈາກລະບົບແລ້ວ");
+  };
+  app.querySelectorAll(".rec").forEach(el=>{
+    const open=()=>{view={name:"detail",uid:el.dataset.uid}; render()};
+    el.onclick=open;
+    el.onkeydown=e=>{if(e.key==="Enter")open()};
+  });
+  const setTab=t=>{view.tab=t; renderHomeStaff(me)};
+  app.querySelectorAll(".tabbar button").forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+  app.querySelectorAll("[data-f]").forEach(el=>el.onchange=()=>{
+    view.f[el.dataset.f]=el.value; view.tab="reports"; renderHomeStaff(me);
+  });
+  const fc=app.querySelector("#fclear");
+  if(fc) fc.onclick=()=>{
+    view.f={status:"all",from:"",to:"",sugar:"all",truck:"all",customer:"all",transport:"all",sort:view.f.sort};
+    view.tab="reports"; renderHomeStaff(me);
+  };
+  // swipe between the two slides
+  const sl=app.querySelector("#slides");
+  let sx=0, sy=0, tracking=false;
+  sl.addEventListener("touchstart",e=>{sx=e.touches[0].clientX; sy=e.touches[0].clientY; tracking=true},{passive:true});
+  sl.addEventListener("touchend",e=>{
+    if(!tracking) return; tracking=false;
+    const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+    if(Math.abs(dx)>60 && Math.abs(dx)>Math.abs(dy)*1.5){
+      if(dx<0 && tab==="overview") setTab("reports");
+      else if(dx>0 && tab==="reports") setTab("overview");
+    }
+  },{passive:true});
+}
+
 function renderHome(){
   const meRole = currentUser();
+  if(meRole && (meRole.role==="checker"||meRole.role==="approver")) return renderHomeStaff(meRole);
   const visible = meRole && meRole.role==="recorder"
     ? records.filter(r=>r.recordedBy && r.recordedBy.username===meRole.username)
     : records;
