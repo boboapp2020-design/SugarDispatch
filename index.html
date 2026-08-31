@@ -1,0 +1,1995 @@
+<!doctype html>
+<html lang="lo">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ບັນທຶກສົ່ງມອບນ້ຳຕານ</title>
+<meta name="theme-color" content="#16294B">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao+Looped:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&family=Archivo:wght@700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root{
+    --ground:#E9EEF5;
+    --paper:#F3F7FB;
+    --card:#FFFFFF;
+    --ink:#1C2A42;
+    --ink-2:#5C6B84;
+    --ink-3:#8DA0B5;
+    --line:#DFE7F1;
+    --green:#1F3A68;
+    --green-deep:#16294B;
+    --green-soft:#E4EDF9;
+    --gold:#C9992E;
+    --gold-soft:#F5EBD4;
+    --ok:#2E8B57;
+    --ok-soft:#E1F2E7;
+    --bad:#C4453A;
+    --bad-soft:#F9E7E4;
+    --info:#2C6E9B;
+    --info-soft:#E2EEF6;
+    --appbar-ink:#F2F6FC;
+    --on-brand:#FFFFFF;
+    --shadow:0 1px 3px rgba(22,41,75,.08),0 6px 20px rgba(22,41,75,.07);
+    --focus:#1F3A68;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ground:#0C1220;
+      --paper:#111927;
+      --card:#19243A;
+      --ink:#E7EDF6;
+      --ink-2:#A6B4CB;
+      --ink-3:#75859F;
+      --line:#2A3852;
+      --green:#6E96D8;
+      --green-deep:#0F1B33;
+      --green-soft:#1D2B47;
+      --gold:#D9A441;
+      --gold-soft:#3A3120;
+      --ok:#4CAF7D;
+      --ok-soft:#1E3428;
+      --bad:#E06A5F;
+      --bad-soft:#3B241F;
+      --info:#5D9EC9;
+      --info-soft:#1D2E3B;
+      --appbar-ink:#E7EDF6;
+      --on-brand:#0C1220;
+      --shadow:0 1px 3px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.3);
+      --focus:#6E96D8;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#0C1220;
+    --paper:#111927;
+    --card:#19243A;
+    --ink:#E7EDF6;
+    --ink-2:#A6B4CB;
+    --ink-3:#75859F;
+    --line:#2A3852;
+    --green:#6E96D8;
+    --green-deep:#0F1B33;
+    --green-soft:#1D2B47;
+    --gold:#D9A441;
+    --gold-soft:#3A3120;
+    --ok:#4CAF7D;
+    --ok-soft:#1E3428;
+    --bad:#E06A5F;
+    --bad-soft:#3B241F;
+    --info:#5D9EC9;
+    --info-soft:#1D2E3B;
+    --appbar-ink:#E7EDF6;
+    --on-brand:#0C1220;
+    --shadow:0 1px 3px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.3);
+    --focus:#6E96D8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--ground);
+    font-family:'Noto Sans Lao Looped','Noto Sans Lao','Noto Sans Thai',system-ui,sans-serif;
+    color:var(--ink);
+    display:flex;justify-content:center;align-items:stretch;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+
+  /* ---------- phone shell ---------- */
+  .phone{
+    width:100%;max-width:430px;min-height:100dvh;
+    background:var(--paper);
+    display:flex;flex-direction:column;
+    position:relative;overflow:hidden;
+  }
+  @media (min-width:520px){
+    body{padding:24px 0}
+    .phone{
+      min-height:0;height:calc(100dvh - 48px);max-height:900px;
+      border-radius:32px;box-shadow:0 24px 70px rgba(15,30,20,.28);
+      border:1px solid var(--line);
+    }
+  }
+
+  /* ---------- app bar ---------- */
+  .appbar{
+    background:var(--green-deep);
+    color:var(--appbar-ink);
+    padding:calc(16px + env(safe-area-inset-top)) 18px 14px;
+    flex:none;
+  }
+  .appbar .row{display:flex;align-items:center;gap:12px}
+  .appbar h1{font-size:17px;font-weight:700;line-height:1.3;letter-spacing:.01em}
+  .appbar .sub{font-size:11.5px;opacity:.75;margin-top:2px}
+  .backbtn{
+    background:rgba(255,255,255,.12);border:none;color:inherit;
+    width:36px;height:36px;border-radius:12px;font-size:18px;
+    cursor:pointer;flex:none;display:grid;place-items:center;
+  }
+  .formcode{
+    margin-left:auto;flex:none;
+    font-family:'IBM Plex Mono',monospace;font-size:10px;
+    background:rgba(255,255,255,.1);
+    border:1px solid rgba(255,255,255,.18);
+    padding:4px 8px;border-radius:8px;opacity:.9;
+    white-space:nowrap;
+  }
+
+  /* ---------- scroll body ---------- */
+  .scroll{flex:1;overflow-y:auto;padding:16px 16px 110px;scroll-behavior:smooth}
+
+  /* ---------- install banner ---------- */
+  .install{
+    display:flex;align-items:center;gap:12px;
+    background:var(--green-deep);color:var(--appbar-ink);
+    border-radius:16px;padding:12px 14px;margin-bottom:12px;
+    box-shadow:var(--shadow);
+  }
+  .install img{width:40px;height:40px;border-radius:10px;flex:none}
+  .install .t{font-size:13px;font-weight:700}
+  .install .d{font-size:11px;opacity:.75}
+  .install button{
+    margin-left:auto;flex:none;border:none;cursor:pointer;
+    background:var(--gold);color:#2A2007;font:inherit;font-size:12.5px;font-weight:700;
+    padding:9px 14px;border-radius:10px;
+  }
+  .install .x{
+    background:transparent;color:inherit;opacity:.6;font-size:15px;
+    padding:6px;margin-left:2px;
+  }
+
+  /* ---------- home ---------- */
+  .search{
+    display:flex;align-items:center;gap:10px;
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:11px 14px;margin-bottom:12px;box-shadow:var(--shadow);
+  }
+  .search input{
+    border:none;outline:none;background:transparent;flex:1;
+    font:inherit;font-size:14px;color:var(--ink);
+  }
+  .search input::placeholder{color:var(--ink-3)}
+  .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{
+    flex:none;border:1px solid var(--line);background:var(--card);
+    color:var(--ink-2);font:inherit;font-size:12.5px;font-weight:600;
+    padding:7px 14px;border-radius:999px;cursor:pointer;
+  }
+  .chip.on{background:var(--green);border-color:var(--green);color:var(--on-brand)}
+
+  .daylabel{
+    font-size:11.5px;font-weight:700;letter-spacing:.06em;color:var(--ink-3);
+    text-transform:uppercase;margin:18px 2px 8px;
+  }
+  .rec{
+    background:var(--card);border:1px solid var(--line);border-radius:18px;
+    padding:14px 15px;margin-bottom:10px;cursor:pointer;
+    box-shadow:var(--shadow);
+  }
+  .rec:active{transform:scale(.985)}
+  .rec .top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .plate{
+    font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:14px;
+    background:var(--gold-soft);color:var(--ink);
+    border:1px solid var(--gold);
+    padding:3px 9px;border-radius:8px;
+  }
+  .pill{
+    margin-left:auto;font-size:11px;font-weight:700;
+    padding:4px 10px;border-radius:999px;white-space:nowrap;
+  }
+  .pill.done{background:var(--ok-soft);color:var(--ok)}
+  .pill.wait{background:var(--info-soft);color:var(--info)}
+  .pill.wait2{background:var(--gold-soft);color:#9A7220}
+  .pill.ret{background:var(--bad-soft);color:var(--bad)}
+  .pill.draft{background:var(--line);color:var(--ink-2)}
+  :root[data-theme="dark"] .pill.wait2{color:var(--gold)}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .pill.wait2{color:var(--gold)}
+  }
+
+  /* ---------- dashboard ---------- */
+  .kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px}
+  .kpi{
+    background:var(--paper);border:1px solid var(--line);border-radius:14px;
+    padding:11px 12px;
+  }
+  .kpi .v{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;font-variant-numeric:tabular-nums}
+  .kpi .k{font-size:11px;color:var(--ink-3);font-weight:600;margin-top:2px}
+  .kpi.hl{background:var(--green-soft);border-color:var(--green)}
+  .kpi.hl .v{color:var(--green)}
+  .statchips{display:flex;flex-wrap:wrap;gap:6px}
+  .statchips .sc{
+    font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;
+  }
+  .bar{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:12.5px}
+  .bar .bl{flex:none;width:112px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bar .bt{flex:1;height:9px;background:var(--paper);border-radius:5px;overflow:hidden}
+  .bar .bt i{display:block;height:100%;background:var(--green);border-radius:5px}
+  .bar.gold .bt i{background:var(--gold)}
+  .bar .bv{flex:none;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;min-width:52px;text-align:right}
+  .tasklabel{
+    display:flex;align-items:center;gap:8px;
+    font-size:13px;font-weight:700;color:var(--bad);margin:4px 2px 8px;
+  }
+  .retnote{
+    background:var(--bad-soft);border:1px solid var(--bad);border-radius:14px;
+    padding:12px 14px;margin-bottom:12px;font-size:13px;color:var(--bad);font-weight:600;
+  }
+  :root[data-theme="dark"] .pill.draft{color:var(--gold)}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .pill.draft{color:var(--gold)}
+  }
+  .rec .cust{font-size:14.5px;font-weight:600;margin-bottom:6px}
+  .rec .meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink-2)}
+  .rec .meta b{color:var(--ink);font-weight:600}
+
+  .fab{
+    position:absolute;right:18px;bottom:calc(24px + env(safe-area-inset-bottom));z-index:20;
+    background:var(--green);color:var(--on-brand);border:none;cursor:pointer;
+    height:54px;border-radius:18px;padding:0 20px 0 16px;
+    font:inherit;font-size:14.5px;font-weight:700;
+    display:flex;align-items:center;gap:8px;
+    box-shadow:0 8px 24px rgba(31,58,104,.4);
+  }
+  .fab span.plus{font-size:22px;font-weight:400;line-height:1}
+
+  /* ---------- wizard ---------- */
+  .steps{
+    display:flex;align-items:center;padding:16px 26px 2px;flex:none;
+    background:var(--green-deep);
+  }
+  .steps .st{flex:none}
+  .steps .dot{
+    width:32px;height:32px;border-radius:50%;
+    display:grid;place-items:center;font-size:13.5px;font-weight:700;
+    background:rgba(255,255,255,.13);color:rgba(255,255,255,.6);
+    border:2px solid transparent;
+    font-family:'IBM Plex Mono',monospace;
+  }
+  .steps .st.cur .dot{background:var(--gold);color:#22304E;box-shadow:0 0 0 4px rgba(201,153,46,.25)}
+  .steps .st.done .dot{background:transparent;border-color:var(--gold);color:var(--gold)}
+  .steps .ln{flex:1;height:2.5px;border-radius:2px;background:rgba(255,255,255,.18);margin:0 8px}
+  .steps .ln.done{background:var(--gold)}
+  .stepname{
+    background:var(--green-deep);color:var(--appbar-ink);
+    padding:12px 18px 18px;font-size:14px;font-weight:700;flex:none;
+    letter-spacing:.01em;
+  }
+
+  .sec{
+    background:var(--card);border:1px solid var(--line);border-radius:18px;
+    padding:17px;margin-bottom:12px;box-shadow:var(--shadow);
+  }
+  .sec h3{
+    font-size:13.5px;font-weight:700;color:var(--green);
+    margin-bottom:12px;display:flex;align-items:center;gap:9px;
+  }
+  .sec h3 .n{
+    background:var(--gold);color:#22304E;width:22px;height:22px;border-radius:8px;
+    display:grid;place-items:center;font-size:11px;flex:none;
+  }
+  .field{margin-bottom:12px}
+  .field:last-child{margin-bottom:0}
+  .field label{
+    display:block;font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:6px;
+  }
+  .field label .req{color:var(--bad)}
+  .field input,.field select,.field textarea{
+    width:100%;font:inherit;font-size:14.5px;color:var(--ink);
+    background:var(--paper);border:1px solid var(--line);border-radius:12px;
+    padding:11px 13px;outline:none;
+  }
+  .field input:focus,.field select:focus,.field textarea:focus{
+    border-color:var(--focus);box-shadow:0 0 0 3px color-mix(in srgb,var(--focus) 18%,transparent);
+  }
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+  .optwrap{display:flex;flex-wrap:wrap;gap:8px}
+  .opt{
+    border:1.5px solid var(--line);background:var(--paper);color:var(--ink-2);
+    font:inherit;font-size:13px;font-weight:600;
+    padding:9px 14px;border-radius:12px;cursor:pointer;
+  }
+  .opt.on{border-color:var(--green);background:var(--green);color:var(--on-brand)}
+
+  .switchrow{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:4px 0;
+  }
+  .switchrow .t{font-size:14px;font-weight:600}
+  .switchrow .d{font-size:11.5px;color:var(--ink-3);margin-top:1px}
+  .sw{
+    width:48px;height:28px;border-radius:999px;border:none;cursor:pointer;flex:none;
+    background:var(--line);position:relative;transition:background .15s;
+  }
+  .sw::after{
+    content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;
+    border-radius:50%;background:var(--card);transition:left .15s;
+    box-shadow:0 1px 3px rgba(0,0,0,.25);
+  }
+  .sw.on{background:var(--green)}
+  .sw.on::after{left:23px}
+
+  /* checklist */
+  .check{
+    display:flex;align-items:center;gap:10px;
+    padding:11px 0;border-bottom:1px dashed var(--line);
+  }
+  .check:last-child{border-bottom:none;padding-bottom:2px}
+  .check .name{flex:1;font-size:13.5px;font-weight:600}
+  .seg{display:flex;gap:6px;flex:none}
+  .seg button{
+    border:1.5px solid var(--line);background:var(--paper);color:var(--ink-2);
+    font:inherit;font-size:12px;font-weight:700;
+    padding:7px 12px;border-radius:10px;cursor:pointer;min-width:58px;
+  }
+  .seg button.good.on{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
+  .seg button.badopt.on{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+  .seg button.neutral.on{border-color:var(--info);background:var(--info-soft);color:var(--info)}
+
+  .photobtn{
+    width:100%;border:1.5px dashed var(--line);background:transparent;color:var(--ink-2);
+    font:inherit;font-size:13px;font-weight:600;border-radius:12px;
+    padding:12px;cursor:pointer;margin-top:12px;
+  }
+  .photobtn:active{background:var(--green-soft)}
+  .photos{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .photos img{
+    width:72px;height:72px;object-fit:cover;border-radius:10px;
+    border:1px solid var(--line);
+  }
+
+  /* lots */
+  .lotsum{
+    display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;
+  }
+  .lotsum .cell{
+    background:var(--paper);border:1px solid var(--line);border-radius:12px;
+    padding:9px 10px;text-align:center;
+  }
+  .lotsum .v{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600}
+  .lotsum .k{font-size:10.5px;color:var(--ink-3);font-weight:600;margin-top:2px}
+  .lot{
+    border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px;
+    background:var(--paper);
+  }
+  .lot .lr{display:flex;gap:8px;align-items:center;margin-bottom:9px}
+  .lot .lr:last-child{margin-bottom:0}
+  .lot .idx{
+    width:26px;height:26px;border-radius:9px;background:var(--green-deep);color:#fff;
+    display:grid;place-items:center;font-size:12px;font-weight:700;flex:none;
+    font-family:'IBM Plex Mono',monospace;
+  }
+  .lot input{
+    font:inherit;font-size:13.5px;color:var(--ink);
+    background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:8px 10px;outline:none;min-width:0;
+  }
+  .lot input.lotno{flex:1;font-family:'IBM Plex Mono',monospace}
+  .lot input.bags{width:86px;font-family:'IBM Plex Mono',monospace;text-align:right}
+  .lot .unit{font-size:11.5px;color:var(--ink-3);flex:none}
+  .lot .del{
+    border:none;background:transparent;color:var(--ink-3);cursor:pointer;
+    font-size:16px;flex:none;width:28px;height:28px;border-radius:8px;
+  }
+  .lot .del:active{background:var(--bad-soft);color:var(--bad)}
+  .lottgl{display:flex;gap:8px;flex:1}
+  .lottgl button{
+    flex:1;border:1.5px solid var(--line);background:var(--card);color:var(--ink-2);
+    font:inherit;font-size:12px;font-weight:700;padding:8px;border-radius:10px;cursor:pointer;
+  }
+  .lottgl button.ok{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
+  .lottgl button.no{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+  .addlot{
+    width:100%;border:1.5px dashed var(--green);background:transparent;color:var(--green);
+    font:inherit;font-size:13.5px;font-weight:700;border-radius:12px;
+    padding:12px;cursor:pointer;
+  }
+
+  /* signatures */
+  .sigs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .sig{
+    border:1px solid var(--line);border-radius:14px;background:var(--paper);
+    overflow:hidden;
+  }
+  .sig canvas{display:block;width:100%;height:88px;touch-action:none;background:var(--card)}
+  .sig .cap{
+    font-size:10.5px;font-weight:600;color:var(--ink-2);text-align:center;
+    padding:7px 6px;border-top:1px dashed var(--line);
+    display:flex;align-items:center;justify-content:center;gap:6px;
+  }
+  .sig .cap .clr{
+    border:none;background:transparent;color:var(--ink-3);cursor:pointer;font-size:11px;
+    text-decoration:underline;font-family:inherit;
+  }
+  .sig.signed .cap{color:var(--ok)}
+  .sigimg{width:100%;height:64px;object-fit:contain;background:var(--card);border-radius:10px;border:1px solid var(--line)}
+
+  /* footer nav */
+  .foot{
+    position:absolute;left:0;right:0;bottom:0;z-index:15;
+    background:color-mix(in srgb,var(--paper) 88%,transparent);
+    backdrop-filter:blur(10px);
+    border-top:1px solid var(--line);
+    padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+    display:flex;gap:10px;
+  }
+  .btn{
+    font:inherit;font-size:14.5px;font-weight:700;border-radius:14px;
+    padding:13px 18px;cursor:pointer;border:1.5px solid var(--line);
+    background:var(--card);color:var(--ink);
+  }
+  .btn.primary{flex:1;background:var(--green);border-color:var(--green);color:var(--on-brand)}
+  .btn.gold{flex:1;background:var(--gold);border-color:var(--gold);color:#2A2007}
+  .btn:disabled{opacity:.45;cursor:default}
+
+  /* detail */
+  .kv{display:flex;justify-content:space-between;gap:14px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+  .kv:last-child{border-bottom:none}
+  .kv .k{color:var(--ink-2)}
+  .kv .v{font-weight:600;text-align:right}
+  .badge-ok{display:inline-block;background:var(--ok-soft);color:var(--ok);font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px}
+  .badge-bad{display:inline-block;background:var(--bad-soft);color:var(--bad);font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px}
+
+  .toast{
+    position:absolute;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);
+    background:var(--green-deep);color:#fff;font-size:13px;font-weight:600;
+    padding:11px 18px;border-radius:12px;opacity:0;pointer-events:none;
+    transition:opacity .25s,transform .25s;z-index:50;white-space:nowrap;
+    box-shadow:var(--shadow);
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  .empty{
+    text-align:center;color:var(--ink-3);padding:48px 20px;font-size:13.5px;
+  }
+
+  /* ---------- login (SUGAR DISPATCH — committed light navy/gold branding) ---------- */
+  .loginpage{
+    flex:1;min-height:0;overflow:hidden;position:relative;
+    background:#F3F7FB;color:#1F3A68;
+    font-family:'Noto Sans Thai','Noto Sans Lao Looped',system-ui,sans-serif;
+    display:flex;flex-direction:column;
+  }
+  .hero{
+    width:100%;display:block;background:#FFFFFF;
+    flex:1 1 0;min-height:120px;object-fit:cover;object-position:center top;
+  }
+  .loginbody{padding:18px 22px 4px;position:relative;z-index:1;flex:none}
+  .loginas{text-align:center;font-size:15.5px;font-weight:700;color:#1F3A68;margin:2px 0 14px}
+  .rolegrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+  .rolebtn{
+    border:2px solid transparent;background:#FFFFFF;border-radius:16px;
+    padding:18px 12px;cursor:pointer;font:inherit;text-align:center;
+    box-shadow:0 2px 10px rgba(31,58,104,.08);
+  }
+  .rolebtn .ic{
+    width:60px;height:60px;border-radius:50%;margin:0 auto;
+    display:grid;place-items:center;
+  }
+  .rolebtn .ic.rec{background:#E4EDF9}
+  .rolebtn .ic.app{background:#E1F2E5}
+  .rolebtn .t{font-size:15px;font-weight:700;margin-top:10px;color:#1F3A68}
+  .rolebtn .d{font-size:11px;color:#6B7A93;margin-top:4px;line-height:1.5}
+  .rolebtn.on{border-color:#1F3A68}
+  .lfield{
+    display:flex;align-items:center;gap:10px;
+    background:#FFFFFF;border:1px solid #E1E8F2;border-radius:14px;
+    padding:0 14px;margin-bottom:12px;
+    box-shadow:0 2px 8px rgba(31,58,104,.05);
+  }
+  .lfield svg{flex:none}
+  .lfield input{
+    flex:1;border:none;outline:none;background:transparent;
+    font:inherit;font-size:14.5px;color:#1F3A68;padding:14px 0;min-width:0;
+  }
+  .lfield input::placeholder{color:#93A2B8}
+  .lfield .eye{border:none;background:none;cursor:pointer;padding:6px;display:grid;place-items:center}
+  .remember{
+    display:flex;align-items:center;gap:9px;font-size:13.5px;color:#1F3A68;
+    font-weight:500;margin:2px 0 14px;cursor:pointer;user-select:none;
+  }
+  .remember input{width:18px;height:18px;accent-color:#1F3A68;cursor:pointer}
+  .loginbtn{
+    width:100%;border:none;border-radius:14px;cursor:pointer;
+    background:#1F3A68;color:#fff;font:inherit;font-size:16px;font-weight:700;
+    padding:15px;display:flex;align-items:center;justify-content:center;gap:10px;
+    box-shadow:0 8px 20px rgba(31,58,104,.3);
+  }
+  .loginbtn:active{opacity:.88}
+  .adminlink{margin-top:18px;text-align:center}
+  .adminlink button{
+    background:none;border:none;cursor:pointer;font:inherit;
+    color:#1F3A68;font-size:13.5px;text-decoration:underline;font-weight:600;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .wavesvg{display:block;width:100%;margin-top:auto;flex:none}
+
+  /* ---------- admin ---------- */
+  .user{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 0;border-bottom:1px dashed var(--line);font-size:13.5px;
+  }
+  .user:last-child{border-bottom:none}
+  .user .nm{flex:1;font-weight:600}
+  .user .rp{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .user .rp.recorder{background:var(--info-soft);color:var(--info)}
+  .user .rp.checker{background:var(--green-soft);color:var(--green)}
+  .user .rp.admin{background:var(--bad-soft);color:var(--bad)}
+  .user .rp.approver{background:var(--gold-soft);color:#9A7220}
+  :root[data-theme="dark"] .user .rp.approver{color:var(--gold)}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .user .rp.approver{color:var(--gold)}
+  }
+  .user .pin{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-3)}
+  .user .del{
+    border:none;background:transparent;color:var(--ink-3);cursor:pointer;
+    font-size:15px;width:28px;height:28px;border-radius:8px;flex:none;
+  }
+  .user .del:active{background:var(--bad-soft);color:var(--bad)}
+  .userchip{
+    display:flex;align-items:center;gap:6px;font-size:11.5px;opacity:.85;margin-top:3px;
+  }
+  .userchip .rolebadge{
+    font-size:10px;font-weight:700;background:rgba(217,164,65,.25);color:#F0D9A8;
+    padding:2px 8px;border-radius:999px;
+  }
+  button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+    outline:2px solid var(--focus);outline-offset:2px;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none!important;animation:none!important}
+    .scroll{scroll-behavior:auto}
+  }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div id="app" style="display:flex;flex-direction:column;flex:1;min-height:0"></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+/* ================= constants ================= */
+const TRUCK_TYPES = ["ລົດເທວເລີ້ (Trailer)","ລົດແທັງ (Tank)","ລົດ 6 ລໍ້","ລົດບັນທຸກ 10 ລໍ້/ພ້ວງ","ລົດຕູ້ຄອນເທັນເນີ້ (Container)","ອື່ນໆ"];
+const SUGAR_TYPES = ["ນ້ຳຕານຊາຍຂາວ","ນ້ຳຕານດິບ VHP","ນ້ຳຕານ Organic","ນ້ຳຕານຊາຍຂາວບໍລິສຸດ"];
+const PACK_SIZES = ["1,000 kg","50 kg","25 kg","1 kg","0.5 kg"];
+const BAYS = ["WH 1","WH 2","WH 3","WH 4"];
+function packKg(p){
+  const n = parseFloat(String(p).replace(/,/g,""));
+  return isNaN(n) ? null : n;
+}
+function computeTons(d){
+  const kg=packKg(d.pack); if(kg==null) return null;
+  const totalBags=d.lots.reduce((s,l)=>s+(+l.bags||0),0);
+  return +((kg*totalBags)/1000).toFixed(3);
+}
+
+const CHECK_ITEMS = [
+  {id:"ext",   name:"ພາຍນອກລົດ",            a:"ສະອາດ", b:"ບໍ່ສະອາດ"},
+  {id:"int",   name:"ພາຍໃນລົດ",             a:"ສະອາດ", b:"ບໍ່ສະອາດ"},
+  {id:"dry",   name:"ພາຍໃນລົດ (ຄວາມແຫ້ງ)",  a:"ແຫ້ງ",  b:"ປຽກ"},
+  {id:"floor", name:"ພື້ນຂອງລົດ",            a:"ພື້ນໄມ້", b:"ພື້ນເຫຼັກ", neutral:true},
+  {id:"tarpf", name:"ຜ້າໃບປູພື້ນ",           a:"ມີ",    b:"ບໍ່ມີ"},
+  {id:"tarps", name:"ຜ້າປູດ້ານຂ້າງ",         a:"ມີ",    b:"ບໍ່ມີ"},
+  {id:"torn",  name:"ຜ້າປູດ້ານຂ້າງ (ສະພາບ)", a:"ບໍ່ຂາດ", b:"ຂາດ"},
+  {id:"chem",  name:"ການປົນເປື້ອນສານເຄມີ",   a:"ບໍ່ມີ",  b:"ມີ"},
+  {id:"alrg",  name:"ສານກໍ່ພູມແພ້",          a:"ບໍ່ມີ",  b:"ມີ"},
+  {id:"pest",  name:"ຮ່ອງຮອຍສັດພາຫະ",       a:"ບໍ່ມີ",  b:"ມີ"},
+];
+
+const SIG_ROLES = [
+  {id:"driver", name:"ພະນັກງານຂັບລົດ"},
+  {id:"logis",  name:"ຫົວໜ້າກະໂລຈິສຕິກ"},
+  {id:"qc",     name:"ພະນັກງານ QC/ເຈົ້າໜ້າທີ່"},
+  {id:"qa",     name:"ຫົວໜ້າພະແນກວິເຄາະຄຸນນະພາບ"},
+];
+
+/* ================= storage ================= */
+const KEY = "sugarDelivery.records.v1";
+
+function seedRecords(){
+  const checks1={}, checks2={};
+  CHECK_ITEMS.forEach(c=>{checks1[c.id]="a"; checks2[c.id]="a"});
+  checks2.torn="b";
+  return [
+    {
+      id:1, status:"done", date:"2026-08-28", plate:"ກຂ 4512",
+      transport:"ບໍລິສັດ ຂົນສົ່ງລາວໂລຈິສຕິກ", customer:"Mitr Phol Trading (SG)",
+      truckType:"ລົດຕູ້ຄອນເທັນເນີ້ (Container)", coa:true,
+      timeStart:"08:30", timeEnd:"10:05", prodYear:"2025/2026",
+      sugarType:"ນ້ຳຕານດິບ VHP", pack:"50 kg", tons:32, bay:"ສາງ 2 / Bay 3",
+      lots:[
+        {no:"VHP-260828-01", bags:320, clean:true, firm:true},
+        {no:"VHP-260828-02", bags:320, clean:true, firm:true},
+      ],
+      tarp:"ຮຽບຮ້ອຍ", seal:"SL-88213", note:"", otherNote:"",
+      sigs:{driver:true,logis:true,qc:true,qa:true}, sigImgs:{}, checks:checks1
+    },
+    {
+      id:2, status:"wait", date:"2026-08-29", plate:"ຄງ 1088",
+      transport:"ວິໄລພອນ ຂົນສົ່ງ", customer:"ຮ້ານຄ້າສົ່ງ ວຽງຈັນ",
+      truckType:"ລົດບັນທຸກ 10 ລໍ້/ພ້ວງ", coa:false,
+      timeStart:"13:10", timeEnd:"", prodYear:"2025/2026",
+      sugarType:"ນ້ຳຕານຊາຍຂາວ", pack:"50 kg", tons:18, bay:"ສາງ 1 / Bay 1",
+      lots:[{no:"WS-260829-04", bags:360, clean:true, firm:false}],
+      tarp:"", seal:"", note:"ລໍຖ້າ QC ກວດ Lot ສຸດທ້າຍ", otherNote:"",
+      sigs:{driver:true,logis:false,qc:false,qa:false}, sigImgs:{}, checks:checks2
+    },
+  ];
+}
+
+let records;
+try{
+  records = JSON.parse(localStorage.getItem(KEY)) || seedRecords();
+}catch(e){ records = seedRecords(); }
+records.forEach(r=>{ if(!r.uid) r.uid = "r"+r.id+"-"+Math.random().toString(36).slice(2,8); });
+
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(records)); }
+  catch(e){ toast("⚠ ບັນທຶກລົງເຄື່ອງບໍ່ໄດ້ (ບ່ອນເກັບເຕັມ)"); }
+}
+
+/* ---- users & session ---- */
+const KEY_USERS   = "sugarDelivery.users.v2";
+const KEY_ADMIN   = "sugarDelivery.adminPin.v1";
+const KEY_SESSION = "sugarDelivery.session.v1";
+
+const ROLE_NAMES = {recorder:"ຜູ້ບັນທຶກ", checker:"ຜູ້ກວດສອບ", approver:"ຜູ້ອະນຸມັດ", admin:"ແອດມິນ"};   // Lao (in-app)
+const ROLE_TH    = {recorder:"ผู้บันทึก", checker:"ผู้ตรวจสอบ", approver:"ผู้อนุมัติ", admin:"แอดมิน"};     // Thai (login/admin)
+
+function seedUsers(){
+  return [
+    {id:1,  username:"QC01",      password:"1234", name:"นางสุกสะหวัน จันทะวง",    role:"recorder"},
+    {id:2,  username:"QC02",      password:"1234", name:"ท้าวพวงมะไล สุลิยะจันโท", role:"recorder"},
+    {id:3,  username:"QC03",      password:"1234", name:"นางสุงา ไชยะลาด",         role:"recorder"},
+    {id:4,  username:"QC04",      password:"1234", name:"นางลำดวน แก้วบัวเงิน",     role:"recorder"},
+    {id:5,  username:"QC05",      password:"1234", name:"นางสุดสะดา สีวงดาว",      role:"recorder"},
+    {id:6,  username:"QC06",      password:"1234", name:"ท้าวชมมะนา ชุมพนพักดี",   role:"recorder"},
+    {id:7,  username:"QA01",      password:"1234", name:"ท้าววงปะเสิด สีลาพม",     role:"checker"},
+    {id:8,  username:"QA02",      password:"1234", name:"นางอำไพพอน สุวินคำ",      role:"checker"},
+    {id:9,  username:"QA03",      password:"1234", name:"นางคำเพีด พมมะสาน",       role:"checker"},
+    {id:10, username:"Approve01", password:"1234", name:"ท้าวคำตัน สอนพุกปะเสิด",  role:"approver"},
+    {id:11, username:"Approve02", password:"1234", name:"ท้าวพูโขง เข็มมะวง",      role:"approver"},
+    {id:12, username:"admin",     password:"9999", name:"ຜູ້ດູແລລະບົບ",             role:"admin"},
+  ];
+}
+let users;
+try{ users = JSON.parse(localStorage.getItem(KEY_USERS)) || seedUsers(); }
+catch(e){ users = seedUsers(); }
+function saveUsers(){ try{ localStorage.setItem(KEY_USERS, JSON.stringify(users)); }catch(e){} }
+
+function adminPin(){ return localStorage.getItem(KEY_ADMIN) || "9999"; }
+
+let session = null;
+try{
+  session = JSON.parse(localStorage.getItem(KEY_SESSION)) || JSON.parse(sessionStorage.getItem(KEY_SESSION));
+}catch(e){}
+function currentUser(){ return session ? users.find(u=>u.id===session.userId) : null; }
+function setSession(u, remember){
+  session = u ? {userId:u.id} : null;
+  try{
+    localStorage.removeItem(KEY_SESSION); sessionStorage.removeItem(KEY_SESSION);
+    if(u) (remember?localStorage:sessionStorage).setItem(KEY_SESSION, JSON.stringify(session));
+  }catch(e){}
+}
+
+/* ---- Google Sheets sync (Apps Script Web App) ---- */
+const KEY_API   = "sugarDelivery.apiUrl";
+const KEY_QUEUE = "sugarDelivery.queue.v1";
+const DEFAULT_API = "https://script.google.com/macros/s/AKfycbx-rlPKTS_yKXwtt0k2v0UHqu69u6UQqrHxCq0G6yJLmeY75QzSJcryDpR-Ac3XtpmCNA/exec";
+
+function apiUrl(){ return (localStorage.getItem(KEY_API)||"").trim() || DEFAULT_API; }
+
+let queue=[];
+try{ queue = JSON.parse(localStorage.getItem(KEY_QUEUE)) || []; }catch(e){}
+function saveQueue(){ try{ localStorage.setItem(KEY_QUEUE, JSON.stringify(queue)); }catch(e){} }
+function queuePush(p){ queue.push(p); saveQueue(); flushQueue(); }
+
+// records with photos/signatures can exceed the 50k-char Sheets cell limit — sync a slim copy
+function slimRecord(r){
+  const c = JSON.parse(JSON.stringify(r));
+  delete c.photos;
+  if(JSON.stringify(c).length > 45000) delete c.sigImgs;
+  return c;
+}
+
+let flushing=false;
+async function flushQueue(){
+  if(flushing || !apiUrl() || !navigator.onLine || queue.length===0) return;
+  flushing=true;
+  try{
+    while(queue.length){
+      await fetch(apiUrl(), {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(queue[0])});
+      queue.shift(); saveQueue();
+    }
+    if(view.name==="home") renderHome();
+  }catch(e){} finally{ flushing=false; }
+}
+
+async function refreshRemote(){
+  if(!apiUrl() || !navigator.onLine) return false;
+  try{
+    const [ru, rr] = await Promise.all([
+      fetch(apiUrl()+"?action=getUsers").then(r=>r.json()),
+      fetch(apiUrl()+"?action=getRecords").then(r=>r.json()),
+    ]);
+    if(Array.isArray(ru) && ru.length){ users = ru; saveUsers(); }
+    else if(Array.isArray(ru) && ru.length===0 && users.length){
+      queuePush({action:"saveUsers", users});   // seed the empty Users sheet
+    }
+    if(Array.isArray(rr)){
+      const pendingUids = new Set(queue.filter(p=>p.action==="saveRecord").map(p=>p.record.uid));
+      const remoteUids  = new Set(rr.map(r=>r.uid));
+      const localOnly   = records.filter(r=>!remoteUids.has(r.uid) && pendingUids.has(r.uid));
+      records = rr.map(rem=>{
+        const loc = records.find(l=>l.uid===rem.uid);
+        return loc ? {...rem, photos:loc.photos||rem.photos, sigImgs:(loc.sigImgs&&Object.keys(loc.sigImgs).length?loc.sigImgs:rem.sigImgs)} : rem;
+      }).concat(localOnly);
+      records.forEach(normalizeRecord);
+      save();
+    }
+    if(view.name==="home") renderHome();
+    return true;
+  }catch(e){ return false; }
+}
+window.addEventListener("online", flushQueue);
+
+/* ================= state ================= */
+let view = currentUser() ? {name:"home", filter:"all", q:""} : {name:"login"};
+let loginState = {role:"recorder"};
+let draft = null;
+let editId = null;
+let step = 0;
+let deferredPrompt = null;
+let installDismissed = false;
+
+const app = document.getElementById("app");
+const STATUS = {
+  draft:       ["ຮ່າງ","draft"],
+  wait_check:  ["ລໍຖ້າກວດສອບ","wait"],
+  wait_approve:["ລໍຖ້າອະນຸມັດ","wait2"],
+  returned:    ["ສົ່ງກັບແກ້ໄຂ","ret"],
+  rejected:    ["ບໍ່ຜ່ານອະນຸມັດ","ret"],
+  done:        ["ສຳເລັດ","done"],
+};
+const ACTION_LABELS = {
+  submitted:"ສົ່ງກວດສອບ", resubmitted:"ແກ້ໄຂ ແລະ ສົ່ງຄືນ",
+  checked:"ຜ່ານກວດສອບ", returned:"ສົ່ງກັບແກ້ໄຂ",
+  approved:"ອະນຸມັດ", rejected:"ບໍ່ຜ່ານອະນຸມັດ",
+};
+function logAdd(r, action, note){
+  const me=currentUser();
+  (r.log=r.log||[]).push({ts:new Date().toISOString(), action, by:me?me.name:"", user:me?me.username:"", note:note||""});
+}
+function fmtTs(ts){
+  const d=new Date(ts); if(isNaN(d)) return ts;
+  const p=n=>String(n).padStart(2,"0");
+  return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function normalizeRecord(r){
+  if(r.status==="wait") r.status = (r.sigs&&r.sigs.logis) ? "wait_approve" : "wait_check";
+  if(!STATUS[r.status]) r.status="wait_check";
+  r.log = r.log||[];
+  return r;
+}
+records.forEach(normalizeRecord);
+
+function nextRecId(){ return records.reduce((m,r)=>Math.max(m,r.id),0)+1; }
+function toast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg; t.classList.add("show");
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),2200);
+}
+function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function fmtDate(d){
+  if(!d) return "–";
+  const [y,m,dd]=d.split("-");
+  const mo=["ມັງກອນ","ກຸມພາ","ມີນາ","ເມສາ","ພຶດສະພາ","ມິຖຸນາ","ກໍລະກົດ","ສິງຫາ","ກັນຍາ","ຕຸລາ","ພະຈິກ","ທັນວາ"][+m-1];
+  return `${+dd} ${mo} ${y}`;
+}
+
+/* ================= login (SUGAR DISPATCH) ================= */
+const HERO_IMG = "hero.jpg";
+const ICONS = {
+  clipboard:`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1F3A68" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/><path d="M9 10h6M9 14h4"/><path d="m13.5 16.5 4-4"/></svg>`,
+  check:`<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#2E8B57" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4.5 12.5 5 5 10-11"/></svg>`,
+  person:`<svg width="19" height="19" viewBox="0 0 24 24" fill="#8FA0B8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5z"/></svg>`,
+  lock:`<svg width="18" height="18" viewBox="0 0 24 24" fill="#8FA0B8" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3h-2V7a2 2 0 0 0-4 0v3z"/></svg>`,
+  eye:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8FA0B8" stroke-width="1.8" aria-hidden="true"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.8"/></svg>`,
+  gear:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1F3A68" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.5-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.4 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.5 2 1.5A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.5 2 3.5 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.4-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.5-2-1.5A7 7 0 0 0 19 12z"/></svg>`,
+};
+const WAVE_SVG = `<svg class="wavesvg" viewBox="0 0 430 70" preserveAspectRatio="none" aria-hidden="true" style="height:56px">
+  <path d="M0,42 C90,10 160,64 250,44 C330,26 390,40 430,22 L430,70 L0,70 Z" fill="#1F3A68"/>
+  <path d="M0,54 C100,28 190,70 290,52 C360,40 400,50 430,38 L430,70 L0,70 Z" fill="#16294B" opacity=".85"/>
+</svg>`;
+
+function renderLogin(){
+  app.innerHTML = `
+    <div class="loginpage">
+      <img class="hero" src="${HERO_IMG}" alt="SUGAR DISPATCH — ระบบบันทึกการจ่ายออกน้ำตาล QC RECORD SYSTEM">
+      <div class="loginbody">
+        <div class="lfield">
+          ${ICONS.person}
+          <input id="luser" placeholder="ชื่อผู้ใช้งาน (Username)" autocomplete="username" autocapitalize="none">
+        </div>
+        <div class="lfield">
+          ${ICONS.lock}
+          <input id="lpass" type="password" placeholder="รหัสผ่าน (Password)" autocomplete="current-password">
+          <button class="eye" id="leye" aria-label="แสดง/ซ่อนรหัสผ่าน">${ICONS.eye}</button>
+        </div>
+        <label class="remember">
+          <input type="checkbox" id="lremember" checked>
+          จดจำการเข้าสู่ระบบ
+        </label>
+        <button class="loginbtn" id="lgo">เข้าสู่ระบบ <span aria-hidden="true">→</span></button>
+        <div class="adminlink">
+          <button id="ladmin">${ICONS.gear} สำหรับผู้ดูแลระบบ (Admin)</button>
+        </div>
+      </div>
+      ${WAVE_SVG}
+    </div>
+  `;
+  app.querySelector("#leye").onclick=()=>{
+    const p=app.querySelector("#lpass");
+    p.type = p.type==="password" ? "text" : "password";
+  };
+  const doLogin=()=>{
+    const uname=app.querySelector("#luser").value.trim().toLowerCase();
+    const pass=app.querySelector("#lpass").value;
+    const remember=app.querySelector("#lremember").checked;
+    if(!uname){toast("⚠ กรุณากรอกชื่อผู้ใช้งาน"); return}
+    const u=users.find(x=>(x.username||"").toLowerCase()===uname);
+    if(!u || u.password!==pass){toast("⚠ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"); return}
+    if(u.role==="admin"){
+      view={name:"admin"}; render();
+      toast(`✓ ยินดีต้อนรับ ${u.name}`);
+      return;
+    }
+    setSession(u, remember);
+    view={name:"home",filter:"all",q:""}; render();
+    toast(`✓ ຍິນດີຕ້ອນຮັບ ${u.name}`);
+  };
+  app.querySelector("#lgo").onclick=doLogin;
+  app.querySelector("#lpass").addEventListener("keydown",e=>{if(e.key==="Enter")doLogin()});
+  app.querySelector("#ladmin").onclick=()=>{view={name:"adminlogin"}; render()};
+}
+
+function renderAdminLogin(){
+  app.innerHTML = `
+    <div class="loginpage">
+      <img class="hero" src="${HERO_IMG}" alt="SUGAR DISPATCH">
+      <div class="loginbody">
+        <div class="loginas">${ICONS.gear} สำหรับผู้ดูแลระบบ (Admin)</div>
+        <div class="lfield">
+          ${ICONS.lock}
+          <input id="apin" type="password" inputmode="numeric" maxlength="6" placeholder="รหัสผ่านผู้ดูแลระบบ" class="mono" autocomplete="off">
+        </div>
+        <button class="loginbtn" id="ago">เข้าสู่หน้าจัดการ <span aria-hidden="true">→</span></button>
+        <div class="adminlink">
+          <button id="aback">‹ กลับไปหน้าเข้าสู่ระบบ</button>
+        </div>
+      </div>
+      ${WAVE_SVG}
+    </div>
+  `;
+  const go=()=>{
+    if(app.querySelector("#apin").value!==adminPin()){toast("⚠ รหัสผ่านไม่ถูกต้อง"); return}
+    view={name:"admin"}; render();
+  };
+  app.querySelector("#ago").onclick=go;
+  app.querySelector("#apin").addEventListener("keydown",e=>{if(e.key==="Enter")go()});
+  app.querySelector("#aback").onclick=()=>{view={name:"login"}; render()};
+}
+
+let adminEditId = null;
+function renderAdmin(){
+  const eu = adminEditId ? users.find(u=>u.id===adminEditId) : null;
+  app.innerHTML = `
+    <div class="appbar" style="background:#1F3A68">
+      <div class="row">
+        <button class="backbtn" id="adback" aria-label="กลับ">‹</button>
+        <div>
+          <h1>จัดการผู้ใช้งาน</h1>
+          <div class="sub">สำหรับผู้ดูแลระบบ (Admin)</div>
+        </div>
+        <span class="formcode">${users.length} คน</span>
+      </div>
+    </div>
+    <div class="scroll">
+      <div class="sec">
+        <h3 style="color:#1F3A68"><span class="n" style="background:#1F3A68">👥</span> รายชื่อผู้ใช้</h3>
+        ${users.map(u=>`
+          <div class="user" data-id="${u.id}" style="${adminEditId===u.id?'background:var(--gold-soft);border-radius:10px;padding-left:8px;padding-right:4px':''}">
+            <div style="flex:1;min-width:0">
+              <div class="nm">${esc(u.name)}</div>
+              <div class="pin">@${esc(u.username)} · รหัส ${esc(u.password)}</div>
+            </div>
+            <span class="rp ${u.role}">${ROLE_TH[u.role]}</span>
+            <button class="del uedit" aria-label="แก้ไข ${esc(u.name)}" style="color:var(--green)">✏</button>
+            <button class="del" aria-label="ลบ ${esc(u.name)}">✕</button>
+          </div>`).join("")}
+        ${users.length===0?`<div class="empty" style="padding:20px">ยังไม่มีผู้ใช้</div>`:""}
+      </div>
+      <div class="sec">
+        <h3 style="color:#1F3A68"><span class="n" style="background:#1F3A68">${eu?"✏":"＋"}</span> ${eu?`แก้ไขผู้ใช้ @${esc(eu.username)}`:"เพิ่มผู้ใช้ใหม่"}</h3>
+        <div class="field"><label>ชื่อ-นามสกุล (แสดงในแอป)</label>
+          <input id="nuname" placeholder="เช่น ທ້າວ ສີສະຫວາດ" value="${eu?esc(eu.name):""}"></div>
+        <div class="grid2">
+          <div class="field"><label>ชื่อผู้ใช้งาน (Username)</label>
+            <input id="nuuser" placeholder="เช่น QC07" autocapitalize="none" class="mono" value="${eu?esc(eu.username):""}"></div>
+          <div class="field"><label>บทบาท</label>
+            <select id="nurole">
+              <option value="recorder" ${eu&&eu.role==="recorder"?"selected":""}>ผู้บันทึก (QC)</option>
+              <option value="checker" ${eu&&eu.role==="checker"?"selected":""}>ผู้ตรวจสอบ (QA)</option>
+              <option value="approver" ${eu&&eu.role==="approver"?"selected":""}>ผู้อนุมัติ</option>
+              <option value="admin" ${eu&&eu.role==="admin"?"selected":""}>แอดมิน</option>
+            </select></div>
+        </div>
+        <div class="field"><label>รหัสผ่าน</label>
+          <input id="nupass" placeholder="อย่างน้อย 4 ตัวอักษร" class="mono" value="${eu?esc(eu.password):""}"></div>
+        <button class="loginbtn" id="nuadd">${eu?"💾 บันทึกการแก้ไข":"＋ เพิ่มผู้ใช้"}</button>
+        ${eu?`<button class="loginbtn" id="nucancel" style="background:transparent;color:#1F3A68;box-shadow:none;border:1.5px solid #DFE7F1;margin-top:8px">ยกเลิกการแก้ไข</button>`:""}
+      </div>
+      <div class="sec">
+        <h3 style="color:#1F3A68"><span class="n" style="background:#1F3A68">☁</span> เชื่อมต่อ Google Sheets</h3>
+        <div class="field"><label>Web App URL (จาก Apps Script — ดูวิธีติดตั้งใน Code.gs)</label>
+          <input id="apiurl" class="mono" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(apiUrl())}"></div>
+        <button class="loginbtn" id="apisave">บันทึก & ทดสอบการเชื่อมต่อ</button>
+        <div style="font-size:11.5px;color:var(--ink-3);margin-top:8px">
+          ${apiUrl() ? "☁ ตั้งค่าไว้แล้ว — ผู้ใช้และบันทึกจะซิงค์ขึ้น Sheet อัตโนมัติ" : "ยังไม่เชื่อมต่อ — ข้อมูลเก็บในเครื่องเท่านั้น"}
+        </div>
+      </div>
+      <div class="sec">
+        <h3 style="color:#1F3A68"><span class="n" style="background:#1F3A68">🔑</span> เปลี่ยนรหัสผ่านผู้ดูแลระบบ</h3>
+        <div class="field">
+          <input id="newapin" maxlength="12" placeholder="รหัสผ่านใหม่" class="mono">
+        </div>
+        <button class="loginbtn" id="apinsave" style="background:#C9992E">บันทึกรหัสผ่านใหม่</button>
+      </div>
+      <div style="height:8px"></div>
+    </div>
+  `;
+  app.querySelector("#adback").onclick=()=>{adminEditId=null; view={name:"login"}; render()};
+  app.querySelectorAll(".user .del:not(.uedit)").forEach(b=>b.onclick=()=>{
+    const id=+b.closest(".user").dataset.id;
+    const u=users.find(x=>x.id===id);
+    if(!confirm(`ลบผู้ใช้ @${u?u.username:id} ใช่ไหม?`)) return;
+    users = users.filter(x=>x.id!==id);
+    if(session && session.userId===id) setSession(null);
+    if(adminEditId===id) adminEditId=null;
+    saveUsers(); queuePush({action:"saveUsers", users});
+    renderAdmin(); toast("✓ ลบผู้ใช้แล้ว");
+  });
+  app.querySelectorAll(".user .uedit").forEach(b=>b.onclick=()=>{
+    adminEditId=+b.closest(".user").dataset.id;
+    renderAdmin();
+    const sc=app.querySelector(".scroll"); if(sc) sc.scrollTop=sc.scrollHeight/2;
+  });
+  const nc=app.querySelector("#nucancel");
+  if(nc) nc.onclick=()=>{adminEditId=null; renderAdmin()};
+  app.querySelector("#apisave").onclick=async()=>{
+    const url=app.querySelector("#apiurl").value.trim();
+    try{ localStorage.setItem(KEY_API,url); }catch(e){}
+    if(!url){toast("ล้างการเชื่อมต่อแล้ว — ใช้โหมด Offline"); renderAdmin(); return}
+    toast("⏳ กำลังทดสอบการเชื่อมต่อ...");
+    try{
+      const r=await fetch(url+"?action=getUsers").then(x=>x.json());
+      if(Array.isArray(r)){
+        if(r.length===0){ queuePush({action:"saveUsers", users}); toast("✓ เชื่อมต่อสำเร็จ — ส่งรายชื่อผู้ใช้ขึ้น Sheet แล้ว"); }
+        else { users=r; saveUsers(); toast(`✓ เชื่อมต่อสำเร็จ — โหลดผู้ใช้ ${r.length} คนจาก Sheet`); }
+        flushQueue(); refreshRemote(); renderAdmin();
+      } else toast("⚠ เชื่อมต่อได้แต่ข้อมูลไม่ถูกรูปแบบ — ตรวจ Code.gs");
+    }catch(e){ toast("⚠ เชื่อมต่อไม่ได้ — ตรวจ URL และการ Deploy (Anyone)"); }
+  };
+  app.querySelector("#nuadd").onclick=()=>{
+    const name=app.querySelector("#nuname").value.trim();
+    const username=app.querySelector("#nuuser").value.trim();
+    const role=app.querySelector("#nurole").value;
+    const password=app.querySelector("#nupass").value;
+    if(!name){toast("⚠ กรุณากรอกชื่อ"); return}
+    if(!/^[A-Za-z0-9_.-]{3,20}$/.test(username)){toast("⚠ Username ต้องเป็น A-z 0-9 ยาว 3-20 ตัว"); return}
+    if(users.some(u=>u.username.toLowerCase()===username.toLowerCase() && u.id!==adminEditId)){toast("⚠ Username นี้มีอยู่แล้ว"); return}
+    if(password.length<4){toast("⚠ รหัสผ่านอย่างน้อย 4 ตัวอักษร"); return}
+    if(adminEditId){
+      const u=users.find(x=>x.id===adminEditId);
+      if(u){ u.name=name; u.username=username; u.password=password; u.role=role; }
+      adminEditId=null;
+      saveUsers(); queuePush({action:"saveUsers", users});
+      renderAdmin(); toast("✓ แก้ไขผู้ใช้แล้ว");
+    } else {
+      users.push({id:users.reduce((m,u)=>Math.max(m,u.id),0)+1, name, username, password, role});
+      saveUsers(); queuePush({action:"saveUsers", users});
+      renderAdmin(); toast("✓ เพิ่มผู้ใช้แล้ว");
+    }
+  };
+  app.querySelector("#apinsave").onclick=()=>{
+    const p=app.querySelector("#newapin").value.trim();
+    if(p.length<4){toast("⚠ รหัสผ่านอย่างน้อย 4 ตัวอักษร"); return}
+    try{ localStorage.setItem(KEY_ADMIN,p); }catch(e){}
+    app.querySelector("#newapin").value="";
+    toast("✓ เปลี่ยนรหัสผ่านผู้ดูแลแล้ว");
+  };
+}
+
+/* ================= home ================= */
+function recCardHTML(r){
+  return `
+    <div class="rec" data-uid="${r.uid}" role="button" tabindex="0">
+      <div class="top">
+        <span class="plate">${esc(r.plate)}</span>
+        <span class="pill ${STATUS[r.status][1]}">${STATUS[r.status][0]}</span>
+      </div>
+      <div class="cust">${esc(r.customer)||"–"}</div>
+      <div class="meta">
+        <span>⚖️ <b class="mono">${r.tons||"–"}</b> TON</span>
+        <span>📦 <b class="mono">${r.lots.length}</b> Lot</span>
+        ${r.recordedBy?`<span>✍️ ${esc(r.recordedBy.username)}</span>`:""}
+        ${r.coa?`<span>📄 COA</span>`:""}
+      </div>
+    </div>`;
+}
+
+function myTasks(me){
+  if(!me) return [];
+  if(me.role==="checker")
+    return records.filter(r=>r.status==="wait_check" || (r.status==="rejected" && r.checkedBy && r.checkedBy.username===me.username));
+  if(me.role==="approver")
+    return records.filter(r=>r.status==="wait_approve");
+  if(me.role==="recorder")
+    return records.filter(r=>r.status==="returned" && r.recordedBy && r.recordedBy.username===me.username);
+  return [];
+}
+
+function dashHTML(recs){
+  const today = new Date().toISOString().slice(0,10);
+  const active = recs.filter(r=>r.status!=="draft");
+  const tons  = active.reduce((s,r)=>s+(+r.tons||0),0);
+  const bags  = active.reduce((s,r)=>s+r.lots.reduce((x,l)=>x+(+l.bags||0),0),0);
+  const tRecs = active.filter(r=>r.date===today);
+  const tTons = tRecs.reduce((s,r)=>s+(+r.tons||0),0);
+  const cnt = k=>recs.filter(r=>r.status===k).length;
+  const agg=(key)=>{
+    const m={};
+    active.forEach(r=>{const k=r[key]||"–"; m[k]=(m[k]||0)+(+r.tons||0)});
+    return Object.entries(m).sort((a,b)=>b[1]-a[1]);
+  };
+  const barRows=(pairs,gold)=>{
+    const max=Math.max(...pairs.map(p=>p[1]),1);
+    return pairs.slice(0,6).map(([k,v])=>`
+      <div class="bar ${gold?"gold":""}">
+        <span class="bl">${esc(k)}</span>
+        <span class="bt"><i style="width:${Math.max(4,Math.round(v/max*100))}%"></i></span>
+        <span class="bv">${(+v.toFixed(2)).toLocaleString()} t</span>
+      </div>`).join("") || `<div style="font-size:12px;color:var(--ink-3)">ຍັງບໍ່ມີຂໍ້ມູນ</div>`;
+  };
+  return `
+    <div class="sec">
+      <h3><span class="n">📊</span> ສະຫຼຸບການຈ່າຍນ້ຳຕານ</h3>
+      <div class="kpis">
+        <div class="kpi hl"><div class="v">${(+tTons.toFixed(2)).toLocaleString()}</div><div class="k">TON ມື້ນີ້ (${tRecs.length} ຄັນ)</div></div>
+        <div class="kpi"><div class="v">${(+tons.toFixed(2)).toLocaleString()}</div><div class="k">TON ສະສົມທັງໝົດ</div></div>
+        <div class="kpi"><div class="v">${active.length}</div><div class="k">ໃບບັນທຶກທັງໝົດ</div></div>
+        <div class="kpi"><div class="v">${bags.toLocaleString()}</div><div class="k">ກະສອບສະສົມ</div></div>
+      </div>
+      <div class="statchips">
+        <span class="sc" style="background:var(--info-soft);color:var(--info)">ລໍຖ້າກວດ ${cnt("wait_check")}</span>
+        <span class="sc" style="background:var(--gold-soft);color:#9A7220">ລໍຖ້າອະນຸມັດ ${cnt("wait_approve")}</span>
+        <span class="sc" style="background:var(--bad-soft);color:var(--bad)">ສົ່ງກັບ ${cnt("returned")+cnt("rejected")}</span>
+        <span class="sc" style="background:var(--ok-soft);color:var(--ok)">ສຳເລັດ ${cnt("done")}</span>
+      </div>
+    </div>
+    <div class="sec">
+      <h3><span class="n">🍬</span> ແຍກຕາມຊະນິດນ້ຳຕານ (TON)</h3>
+      ${barRows(agg("sugarType"))}
+    </div>
+    <div class="sec">
+      <h3><span class="n">🏭</span> ແຍກຕາມສາງ (TON)</h3>
+      ${barRows(agg("bay"),true)}
+    </div>`;
+}
+
+function renderHome(){
+  const meRole = currentUser();
+  const visible = meRole && meRole.role==="recorder"
+    ? records.filter(r=>r.recordedBy && r.recordedBy.username===meRole.username)
+    : records;
+  const list = visible
+    .filter(r=>{
+      if(view.filter==="all") return true;
+      if(view.filter==="returned") return r.status==="returned"||r.status==="rejected";
+      return r.status===view.filter;
+    })
+    .filter(r=>{
+      const q=view.q.toLowerCase();
+      return !q || (r.plate+r.customer+r.transport).toLowerCase().includes(q);
+    })
+    .sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);
+
+  const groups={};
+  list.forEach(r=>{(groups[r.date]=groups[r.date]||[]).push(r)});
+  const tasks = myTasks(meRole);
+
+  const me = currentUser();
+  app.innerHTML = `
+    <div class="appbar">
+      <div class="row">
+        <div style="flex:1;min-width:0">
+          <h1>ບັນທຶກການສົ່ງມອບນ້ຳຕານ</h1>
+          <div class="userchip">
+            <span>👤 ${esc(me?me.name:"–")}</span>
+            <span class="rolebadge">${me?ROLE_NAMES[me.role]:""}</span>
+          </div>
+        </div>
+        <span class="formcode">Rev.07</span>
+        <button class="backbtn" id="logout" aria-label="ອອກຈາກລະບົບ" title="ອອກຈາກລະບົບ">⏻</button>
+      </div>
+    </div>
+    <div class="scroll">
+      ${deferredPrompt && !installDismissed ? `
+      <div class="install">
+        <img src="icons/icon-192.png" alt="">
+        <div>
+          <div class="t">ຕິດຕັ້ງແອັບລົງໜ້າຈໍ</div>
+          <div class="d">ໃຊ້ງານໄວຂຶ້ນ ແລະ ເປີດໄດ້ໂດຍບໍ່ມີອິນເຕີເນັດ</div>
+        </div>
+        <button id="installbtn">ຕິດຕັ້ງ</button>
+        <button class="x" id="installx" aria-label="ປິດ">✕</button>
+      </div>`:""}
+      ${me && (me.role==="checker"||me.role==="approver") ? dashHTML(records) : ""}
+      ${(()=>{
+        const ld=loadDraftLocal();
+        if(!(me&&me.role==="recorder"&&ld&&ld.user===me.username)) return "";
+        return `<div class="rec" id="resumedraft" role="button" tabindex="0" style="border:1.5px solid var(--gold);background:var(--gold-soft)">
+          <div class="top">
+            <span style="font-weight:700">✎ ຮ່າງທີ່ຍັງຂຽນບໍ່ສຳເລັດ</span>
+            <span class="pill draft">ຮ່າງ</span>
+          </div>
+          <div class="meta">
+            <span>🚛 ${esc(ld.draft.plate||"ຍັງບໍ່ມີທະບຽນ")}</span>
+            <span>ຂັ້ນຕອນ ${ld.step+1}/4</span>
+            <span>ແຕະເພື່ອຂຽນຕໍ່ ›</span>
+          </div>
+        </div>`;
+      })()}
+      ${tasks.length?`
+        <div class="tasklabel">📥 ລໍຖ້າດຳເນີນການ (${tasks.length})</div>
+        ${tasks.map(recCardHTML).join("")}
+        <div class="daylabel">ລາຍການທັງໝົດ</div>
+      `:""}
+      <div class="search">
+        <span aria-hidden="true">🔍</span>
+        <input id="q" placeholder="ຄົ້ນຫາ ທະບຽນລົດ / ລູກຄ້າ / ຂົນສົ່ງ" value="${esc(view.q)}">
+      </div>
+      <div class="chips">
+        ${(me&&me.role==="recorder"
+          ? [["all","ທັງໝົດ"],["draft","ຮ່າງ"],["returned","ສົ່ງກັບ"],["wait_check","ລໍຖ້າກວດ"],["wait_approve","ລໍຖ້າອະນຸມັດ"],["done","ສຳເລັດ"]]
+          : [["all","ທັງໝົດ"],["wait_check","ລໍຖ້າກວດ"],["wait_approve","ລໍຖ້າອະນຸມັດ"],["returned","ສົ່ງກັບ"],["done","ສຳເລັດ"]]
+        ).map(([k,t])=>
+          `<button class="chip ${view.filter===k?"on":""}" data-f="${k}">${t}</button>`).join("")}
+      </div>
+      ${Object.keys(groups).length===0?`<div class="empty">ບໍ່ພົບຂໍ້ມູນ</div>`:""}
+      ${Object.entries(groups).map(([d,rs])=>`
+        <div class="daylabel">${fmtDate(d)}</div>
+        ${rs.map(recCardHTML).join("")}
+      `).join("")}
+      <div style="height:8px"></div>
+      <div style="text-align:center;font-size:11px;color:var(--ink-3);padding-bottom:6px">
+        ${apiUrl()
+          ? (queue.length ? `⏳ ລໍຖ້າຊິງຄ໌ຂຶ້ນ Google Sheets: ${queue.length} ລາຍການ` : "☁ ເຊື່ອມຕໍ່ Google Sheets ແລ້ວ")
+          : "📴 ໂໝດ Offline — ຍັງບໍ່ໄດ້ເຊື່ອມ Google Sheets (ຕັ້ງຄ່າໃນໜ້າ Admin)"}
+      </div>
+    </div>
+    ${me&&me.role==="recorder" ? `<button class="fab" id="fab"><span class="plus">＋</span> ບັນທຶກໃໝ່</button>` : ""}
+  `;
+  const q=app.querySelector("#q");
+  q.addEventListener("input",e=>{
+    view.q=e.target.value; renderHome();
+    const i=app.querySelector("#q"); i.focus(); i.setSelectionRange(i.value.length,i.value.length);
+  });
+  app.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{view.filter=c.dataset.f; renderHome()});
+  app.querySelectorAll(".rec").forEach(el=>{
+    const open=()=>{view={name:"detail",uid:el.dataset.uid}; render()};
+    el.onclick=open;
+    el.onkeydown=e=>{if(e.key==="Enter")open()};
+  });
+  const rd=app.querySelector("#resumedraft");
+  if(rd){
+    const open=()=>{
+      const ld=loadDraftLocal(); if(!ld) return renderHome();
+      draft=ld.draft; step=ld.step||0; editId=ld.editId||null;
+      view={name:"wizard"}; render();
+    };
+    rd.onclick=open;
+    rd.onkeydown=e=>{if(e.key==="Enter")open()};
+  }
+  const fab=app.querySelector("#fab");
+  if(fab) fab.onclick=()=>{
+    const ld=loadDraftLocal();
+    if(ld && me && ld.user===me.username){
+      if(!confirm("ມີຮ່າງຄ້າງຢູ່ — ເລີ່ມບັນທຶກໃໝ່ ແລະ ລຶບຮ່າງເກົ່າຖິ້ມບໍ່?")){
+        draft=ld.draft; step=ld.step||0; editId=ld.editId||null;
+        view={name:"wizard"}; render(); return;
+      }
+      clearDraftLocal();
+    }
+    startDraft(); editId=null; view={name:"wizard"}; step=0; render();
+  };
+  app.querySelector("#logout").onclick=()=>{
+    setSession(null); loginState={role:"recorder"};
+    view={name:"login"}; render(); toast("ອອກຈາກລະບົບແລ້ວ");
+  };
+  const ib=app.querySelector("#installbtn");
+  if(ib) ib.onclick=async()=>{
+    deferredPrompt.prompt();
+    const {outcome}=await deferredPrompt.userChoice;
+    if(outcome==="accepted"){deferredPrompt=null; toast("✓ ຕິດຕັ້ງແລ້ວ")}
+    renderHome();
+  };
+  const ix=app.querySelector("#installx");
+  if(ix) ix.onclick=()=>{installDismissed=true; renderHome()};
+}
+
+/* ================= wizard ================= */
+const KEY_DRAFT = "sugarDelivery.draft.v1";
+function saveDraftLocal(){
+  if(!draft) return;
+  const me=currentUser();
+  try{ localStorage.setItem(KEY_DRAFT, JSON.stringify({draft, step, editId, user: me?me.username:""})); }catch(e){}
+}
+function loadDraftLocal(){
+  try{ return JSON.parse(localStorage.getItem(KEY_DRAFT)); }catch(e){ return null; }
+}
+function clearDraftLocal(){ try{ localStorage.removeItem(KEY_DRAFT); }catch(e){} }
+
+function startDraft(){
+  const me = currentUser();
+  draft = {
+    id:nextRecId(), uid:"u"+Date.now().toString(36)+Math.random().toString(36).slice(2,7),
+    recordedBy: me ? {name:me.name, username:me.username} : null,
+    status:"draft",
+    date:new Date().toISOString().slice(0,10),
+    plate:"", transport:"", customer:"", truckType:"", coa:false,
+    timeStart:"", timeEnd:"", prodYear:"",
+    sugarType:"", pack:"", tons:"", bay:"",
+    lots:[{no:"",bags:"",clean:true,firm:true}],
+    tarp:"", seal:"", note:"", otherNote:"", driverName:"",
+    sigs:{}, sigImgs:{}, checks:{}
+  };
+}
+
+const STEP_NAMES=["ຂໍ້ມູນທົ່ວໄປ","1. ສະພາບລົດບັນທຸກກ່ອນ Load","2. ສະພາບນ້ຳຕານ","3. ປົກຜ້າໃບ / Seal ແລະ ລາຍເຊັນ"];
+
+function wizardShell(inner, footer){
+  app.innerHTML = `
+    <div class="appbar" style="padding-bottom:0">
+      <div class="row">
+        <button class="backbtn" id="wback" aria-label="ກັບຄືນ">‹</button>
+        <div>
+          <h1>${editId?"ແກ້ໄຂບັນທຶກ":"ບັນທຶກໃໝ່"}</h1>
+          <div class="sub">ຂັ້ນຕອນ ${step+1} / 4</div>
+        </div>
+        <span class="formcode">Rev.07</span>
+      </div>
+    </div>
+    <div class="steps">${[0,1,2,3].map(i=>`
+      <div class="st ${i===step?"cur":i<step?"done":""}"><div class="dot">${i<step?"✓":i+1}</div></div>
+      ${i<3?`<div class="ln ${i<step?"done":""}"></div>`:""}`).join("")}</div>
+    <div class="stepname">${STEP_NAMES[step]}</div>
+    <div class="scroll" id="wbody">${inner}</div>
+    <div class="foot">${footer}</div>
+  `;
+  app.querySelector("#wback").onclick=()=>{
+    if(step===0){
+      saveStep();
+      view={name:"home",filter:"all",q:""}; render();
+      toast("💾 ບັນທຶກຮ່າງໄວ້ແລ້ວ");
+    }
+    else {saveStep(); step--; render()}
+  };
+  clearInterval(window.__autosave);
+  window.__autosave = setInterval(()=>{
+    if(view.name==="wizard" && draft) saveStep();   // saveStep also persists the draft locally
+  }, 5000);
+}
+
+function footBtns(last){
+  return `
+    ${step>0?`<button class="btn" id="prev">ກັບຄືນ</button>`:`<button class="btn" id="cancel">ຍົກເລີກ</button>`}
+    ${last
+      ?`<button class="btn gold" id="finish">ສະຫຼຸບຂໍ້ມູນ ›</button>`
+      :`<button class="btn primary" id="next">ຕໍ່ໄປ ›</button>`}
+  `;
+}
+
+function bindFoot(last){
+  const p=app.querySelector("#prev"), c=app.querySelector("#cancel");
+  if(p)p.onclick=()=>{saveStep(); step--; render()};
+  if(c)c.onclick=()=>{
+    if(!confirm("ຍົກເລີກ ແລະ ລຶບຮ່າງນີ້ຖິ້ມບໍ່?")) return;
+    clearDraftLocal(); draft=null; editId=null;
+    view={name:"home",filter:"all",q:""}; render();
+  };
+  if(!last){
+    app.querySelector("#next").onclick=()=>{
+      saveStep();
+      if(!validateStep()) return;
+      step++; render();
+    };
+  } else {
+    app.querySelector("#finish").onclick=()=>{
+      saveStep();
+      if(!draft.tarp){toast("⚠ ກະລຸນາເລືອກສະຖານະການປົກຜ້າໃບ / Seal"); return}
+      if(!String(draft.driverName||"").trim()){toast("⚠ ກະລຸນາພິມຊື່ພະນັກງານຂັບລົດ"); return}
+      view={name:"confirm"}; render();
+    };
+  }
+}
+
+function validateStep(){
+  if(step===0){
+    if(!draft.date){toast("⚠ ກະລຸນາເລືອກວັນທີ"); return false}
+    if(!String(draft.plate).trim()){toast("⚠ ກະລຸນາປ້ອນທະບຽນລົດ"); return false}
+    if(!String(draft.transport).trim()){toast("⚠ ກະລຸນາປ້ອນບໍລິສັດຂົນສົ່ງ"); return false}
+    if(!String(draft.customer).trim()){toast("⚠ ກະລຸນາປ້ອນລູກຄ້າປາຍທາງ"); return false}
+    if(!draft.truckType){toast("⚠ ກະລຸນາເລືອກປະເພດລົດບັນທຸກ"); return false}
+  }
+  if(step===1){
+    const missing = CHECK_ITEMS.filter(c=>!draft.checks[c.id]);
+    if(missing.length){
+      toast(`⚠ ຍັງບໍ່ໄດ້ກວດ: ${missing[0].name} (ເຫຼືອ ${missing.length} ລາຍການ)`);
+      return false;
+    }
+  }
+  if(step===2){
+    if(!draft.sugarType){toast("⚠ ກະລຸນາເລືອກຊະນິດນ້ຳຕານ"); return false}
+    if(!draft.pack){toast("⚠ ກະລຸນາເລືອກຂະໜາດບັນຈຸ"); return false}
+    if(!(+draft.tons>0)){toast("⚠ ກະລຸນາປ້ອນຈຳນວນທີ່ບັນທຸກ (TON)"); return false}
+    if(!String(draft.bay).trim()){toast("⚠ ກະລຸນາເລືອກບ່ອນຂື້ນນ້ຳຕານ (WH)"); return false}
+    if(draft.lots.length===0){toast("⚠ ກະລຸນາເພີ່ມຢ່າງໜ້ອຍ 1 Lot"); return false}
+    const bad = draft.lots.findIndex(l=>!String(l.no).trim() || !(+l.bags>0));
+    if(bad>=0){toast(`⚠ Lot ທີ ${bad+1} ຍັງບໍ່ຄົບ (ເລກ Lot / ຈຳນວນກະສອບ)`); return false}
+  }
+  return true;
+}
+
+function saveStep(){
+  const b=app.querySelector("#wbody"); if(!b) return;
+  b.querySelectorAll("[data-k]").forEach(el=>{
+    draft[el.dataset.k] = el.type==="number" ? (el.value===""?"":+el.value) : el.value;
+  });
+  if(step===2){
+    b.querySelectorAll(".lot").forEach((el,i)=>{
+      const l=draft.lots[i]; if(!l) return;
+      l.no = el.querySelector(".lotno").value;
+      l.bags = +el.querySelector(".bags").value||0;
+    });
+    const ps=b.querySelector("#packsel"); if(ps) draft.pack=ps.value;
+    const ct=computeTons(draft); if(ct!=null) draft.tons=ct;
+  }
+  saveDraftLocal();
+}
+
+/* ---- step 0: general ---- */
+function renderStep0(){
+  wizardShell(`
+    <div class="sec">
+      <h3><span class="n">🚚</span> ວັນທີ ແລະ ເວລາ</h3>
+      <div class="grid2">
+        <div class="field"><label>ວັນທີ <span class="req">*</span></label>
+          <input type="date" data-k="date" value="${esc(draft.date)}"></div>
+        <div class="field"><label>ປີການຜະລິດ</label>
+          <input data-k="prodYear" class="mono" placeholder="....../......" value="${esc(draft.prodYear)}"></div>
+        <div class="field"><label>ເວລາເລີ່ມຂື້ນ</label>
+          <input type="time" data-k="timeStart" value="${esc(draft.timeStart)}"></div>
+      </div>
+    </div>
+    <div class="sec">
+      <h3><span class="n">🪪</span> ລົດ ແລະ ຜູ້ກ່ຽວຂ້ອງ</h3>
+      <div class="field"><label>ທະບຽນລົດ <span class="req">*</span></label>
+        <input data-k="plate" placeholder="ຕົວຢ່າງ: ກຂ 1234" value="${esc(draft.plate)}"></div>
+      <div class="field"><label>ບໍລິສັດມາຮັບສິນຄ້າ (ຂົນສົ່ງ)</label>
+        <input data-k="transport" placeholder="ຊື່ບໍລິສັດຂົນສົ່ງ" value="${esc(draft.transport)}"></div>
+      <div class="field"><label>ບໍລິສັດປາຍທາງ (ລູກຄ້າ)</label>
+        <input data-k="customer" placeholder="ຊື່ລູກຄ້າ / ປາຍທາງ" value="${esc(draft.customer)}"></div>
+    </div>
+    <div class="sec">
+      <h3><span class="n">🚛</span> ປະເພດລົດບັນທຸກ <span class="req">*</span></h3>
+      <div class="optwrap" id="ttypes">
+        ${TRUCK_TYPES.map(t=>`<button class="opt ${draft.truckType===t?"on":""}" data-t="${esc(t)}">${esc(t)}</button>`).join("")}
+      </div>
+      <div style="height:14px"></div>
+      <div class="switchrow">
+        <div><div class="t">ຂໍໃບ COA</div><div class="d">Certificate of Analysis</div></div>
+        <button class="sw ${draft.coa?"on":""}" id="coasw" role="switch" aria-checked="${draft.coa}" aria-label="ຂໍໃບ COA"></button>
+      </div>
+    </div>
+  `, footBtns(false));
+  bindFoot(false);
+  const py=app.querySelector("[data-k=prodYear]");
+  py.addEventListener("input",()=>{
+    const d=py.value.replace(/[^0-9]/g,"").slice(0,8);
+    py.value = d.length>4 ? d.slice(0,4)+"/"+d.slice(4) : d;
+  });
+  app.querySelectorAll("#ttypes .opt").forEach(b=>b.onclick=()=>{
+    draft.truckType=b.dataset.t;
+    app.querySelectorAll("#ttypes .opt").forEach(x=>x.classList.toggle("on",x===b));
+  });
+  app.querySelector("#coasw").onclick=e=>{
+    draft.coa=!draft.coa;
+    e.currentTarget.classList.toggle("on",draft.coa);
+    e.currentTarget.setAttribute("aria-checked",draft.coa);
+  };
+}
+
+/* ---- step 1: truck condition ---- */
+function renderStep1(){
+  wizardShell(`
+    <div class="sec">
+      <h3><span class="n">1</span> ກວດສະພາບລົດບັນທຸກກ່ອນ Load</h3>
+      ${CHECK_ITEMS.map(c=>{
+        const v=draft.checks[c.id];
+        return `<div class="check" data-c="${c.id}">
+          <div class="name">${c.name}</div>
+          <div class="seg">
+            <button class="${c.neutral?"neutral":"good"} ${v==="a"?"on":""}" data-v="a">${c.a}</button>
+            <button class="${c.neutral?"neutral":"badopt"} ${v==="b"?"on":""}" data-v="b">${c.b}</button>
+          </div>
+        </div>`;
+      }).join("")}
+    </div>
+    <div class="sec">
+      <div class="field"><label>ອື່ນໆ (ລະບຸ)</label>
+        <input data-k="otherNote" placeholder="ບັນທຶກເພີ່ມເຕີມກ່ຽວກັບສະພາບລົດ" value="${esc(draft.otherNote)}"></div>
+      <button class="photobtn" id="ph1">📷 ຖ່າຍຮູບສະພາບລົດ (ແນບຮູບ)</button>
+      <input type="file" accept="image/*" capture="environment" id="phfile" hidden>
+      <div class="photos" id="phlist"></div>
+    </div>
+  `, footBtns(false));
+  bindFoot(false);
+  app.querySelectorAll(".check").forEach(row=>{
+    row.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{
+      draft.checks[row.dataset.c]=b.dataset.v;
+      row.querySelectorAll(".seg button").forEach(x=>x.classList.toggle("on",x===b));
+    });
+  });
+  const fileIn=app.querySelector("#phfile"), list=app.querySelector("#phlist");
+  const drawPhotos=()=>{
+    list.innerHTML=(draft.photos||[]).map(p=>`<img src="${p}" alt="ຮູບສະພາບລົດ">`).join("");
+  };
+  drawPhotos();
+  app.querySelector("#ph1").onclick=()=>fileIn.click();
+  fileIn.onchange=()=>{
+    const f=fileIn.files[0]; if(!f) return;
+    const img=new Image(), url=URL.createObjectURL(f);
+    img.onload=()=>{
+      const cv=document.createElement("canvas");
+      const scale=Math.min(1, 900/Math.max(img.width,img.height));
+      cv.width=img.width*scale; cv.height=img.height*scale;
+      cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
+      (draft.photos=draft.photos||[]).push(cv.toDataURL("image/jpeg",.7));
+      URL.revokeObjectURL(url); drawPhotos(); toast("✓ ແນບຮູບແລ້ວ");
+    };
+    img.src=url; fileIn.value="";
+  };
+}
+
+/* ---- step 2: sugar + lots ---- */
+function renderStep2(){
+  if(draft.lots.length===0) draft.lots.push({no:"",bags:"",clean:true,firm:true});
+  const totalBags = draft.lots.reduce((s,l)=>s+(+l.bags||0),0);
+  wizardShell(`
+    <div class="sec">
+      <h3><span class="n">2</span> ຂໍ້ມູນນ້ຳຕານ</h3>
+      <div class="field"><label>ຊະນິດນ້ຳຕານ</label>
+        <select data-k="sugarType">
+          <option value="">— ເລືອກ —</option>
+          ${SUGAR_TYPES.map(s=>`<option ${draft.sugarType===s?"selected":""}>${s}</option>`).join("")}
+        </select></div>
+      <div class="grid2">
+        <div class="field"><label>ຂະໜາດບັນຈຸ</label>
+          <select id="packsel">
+            <option value="">— ເລືອກ —</option>
+            ${PACK_SIZES.map(s=>`<option ${draft.pack===s?"selected":""}>${s}</option>`).join("")}
+          </select></div>
+        <div class="field"><label>ຈຳນວນບັນທຸກ (TON)</label>
+          <input type="number" data-k="tons" id="tonsinp" class="mono" value="${esc(draft.tons)}" placeholder="0"
+            readonly tabindex="-1" style="background:var(--green-soft);font-weight:700;color:var(--green);pointer-events:none"></div>
+      </div>
+      <div class="field"><label>ບ່ອນຂື້ນນ້ຳຕານ (Warehouse)</label>
+        <div class="optwrap" id="bayopts">
+          ${BAYS.map(b=>`<button class="opt ${draft.bay===b?"on":""}" data-b="${b}">${b}</button>`).join("")}
+        </div></div>
+    </div>
+    <div class="sec">
+      <h3><span class="n">📦</span> ລາຍການ Lot</h3>
+      <div class="lotsum">
+        <div class="cell"><div class="v">${draft.lots.length}</div><div class="k">Lot ທັງໝົດ</div></div>
+        <div class="cell"><div class="v">${totalBags.toLocaleString()}</div><div class="k">ກະສອບ</div></div>
+        <div class="cell"><div class="v">${draft.lots.filter(l=>l.clean&&l.firm).length}/${draft.lots.length||0}</div><div class="k">ຜ່ານກວດ</div></div>
+      </div>
+      <div id="lots">
+        ${draft.lots.map((l,i)=>lotHTML(l,i)).join("")}
+      </div>
+      <button class="addlot" id="addlot">＋ ເພີ່ມ Lot</button>
+    </div>
+  `, footBtns(false));
+  bindFoot(false);
+  bindLots();
+  app.querySelector("#packsel").onchange=e=>{
+    saveStep(); draft.pack=e.target.value;
+    const ct=computeTons(draft); if(ct!=null) draft.tons=ct;
+    render();
+  };
+  app.querySelectorAll("#bayopts .opt").forEach(b=>b.onclick=()=>{
+    draft.bay=b.dataset.b;
+    app.querySelectorAll("#bayopts .opt").forEach(x=>x.classList.toggle("on",x===b));
+  });
+  app.querySelectorAll(".lot .bags").forEach(inp=>inp.addEventListener("input",updateLotStats));
+  app.querySelector("#addlot").onclick=()=>{
+    saveStep();
+    draft.lots.push({no:"",bags:"",clean:true,firm:true});
+    render();
+    const sc=app.querySelector("#wbody"); sc.scrollTop=sc.scrollHeight;
+  };
+}
+function lotHTML(l,i){
+  return `<div class="lot" data-i="${i}">
+    <div class="lr">
+      <span class="idx">${i+1}</span>
+      <input class="lotno" placeholder="Lot No." value="${esc(l.no)}">
+      <input class="bags" type="number" inputmode="numeric" placeholder="0" value="${esc(l.bags)}">
+      <span class="unit">ກະສອບ</span>
+      <button class="del" aria-label="ລຶບ Lot">✕</button>
+    </div>
+    <div class="lr">
+      <div class="lottgl">
+        <button class="tclean ${l.clean?"ok":"no"}">${l.clean?"✓ ສະອາດ":"✕ ບໍ່ສະອາດ"}</button>
+        <button class="tfirm ${l.firm?"ok":"no"}">${l.firm?"✓ ແຂງ":"✕ ບໍ່ແຂງ"}</button>
+      </div>
+    </div>
+  </div>`;
+}
+function updateLotStats(){
+  app.querySelectorAll(".lot").forEach((el,i)=>{
+    const l=draft.lots[i]; if(!l) return;
+    l.no = el.querySelector(".lotno").value;
+    l.bags = +el.querySelector(".bags").value||0;
+  });
+  const total=draft.lots.reduce((s,l)=>s+(+l.bags||0),0);
+  const pass=draft.lots.filter(l=>l.clean&&l.firm).length;
+  const cells=app.querySelectorAll(".lotsum .cell .v");
+  if(cells.length===3){
+    cells[0].textContent=draft.lots.length;
+    cells[1].textContent=total.toLocaleString();
+    cells[2].textContent=pass+"/"+draft.lots.length;
+  }
+  const ct=computeTons(draft);
+  if(ct!=null){ draft.tons=ct; const t=app.querySelector("#tonsinp"); if(t) t.value=ct; }
+}
+function bindLots(){
+  app.querySelectorAll(".lot").forEach(el=>{
+    const i=+el.dataset.i;
+    el.querySelector(".del").onclick=()=>{
+      saveStep(); draft.lots.splice(i,1);
+      const sc=app.querySelector("#wbody"); const st=sc?sc.scrollTop:0;
+      render();
+      const sc2=app.querySelector("#wbody"); if(sc2) sc2.scrollTop=st;
+    };
+    el.querySelector(".tclean").onclick=()=>{
+      const l=draft.lots[i]; l.clean=!l.clean;
+      const b=el.querySelector(".tclean");
+      b.className="tclean "+(l.clean?"ok":"no");
+      b.textContent=l.clean?"✓ ສະອາດ":"✕ ບໍ່ສະອາດ";
+      updateLotStats();
+    };
+    el.querySelector(".tfirm").onclick=()=>{
+      const l=draft.lots[i]; l.firm=!l.firm;
+      const b=el.querySelector(".tfirm");
+      b.className="tfirm "+(l.firm?"ok":"no");
+      b.textContent=l.firm?"✓ ແຂງ":"✕ ບໍ່ແຂງ";
+      updateLotStats();
+    };
+  });
+}
+
+/* ---- step 3: tarp/seal + signatures ---- */
+function renderStep3(){
+  wizardShell(`
+    <div class="sec">
+      <h3><span class="n">3</span> ການປົກຜ້າໃບພາຍຫຼັງ Load / Seal ປິດຕູ້</h3>
+      <div class="optwrap" id="tarpopts">
+        <button class="opt ${draft.tarp==="ຮຽບຮ້ອຍ"?"on":""}" data-t="ຮຽບຮ້ອຍ">✓ ຮຽບຮ້ອຍ</button>
+        <button class="opt ${draft.tarp==="ບໍ່ຮຽບຮ້ອຍ"?"on":""}" data-t="ບໍ່ຮຽບຮ້ອຍ">✕ ບໍ່ຮຽບຮ້ອຍ</button>
+      </div>
+      <div style="height:12px"></div>
+      <div class="field"><label>Seal No. (ຕູ້ Container)</label>
+        <input data-k="seal" class="mono" placeholder="ຕົວຢ່າງ: SL-88213" value="${esc(draft.seal)}"></div>
+      <div class="field"><label>ບັນທຶກເພີ່ມເຕີມ</label>
+        <textarea data-k="note" rows="2" placeholder="ໝາຍເຫດ...">${esc(draft.note)}</textarea></div>
+    </div>
+    <div class="sec">
+      <h3><span class="n">✍️</span> ຜູ້ລົງນາມ (ຜູ້ບັນທຶກ)</h3>
+      <div class="field"><label>ພະນັກງານຂັບລົດ (ພິມຊື່) <span class="req">*</span></label>
+        <input data-k="driverName" placeholder="ຊື່ ແລະ ນາມສະກຸນ ພະນັກງານຂັບລົດ" value="${esc(draft.driverName||"")}"></div>
+      <div class="field"><label>ພະນັກງານ QC / ຜູ້ບັນທຶກ · ລ໋ອກຕາມບັນຊີຜູ້ໃຊ້</label>
+        <input readonly value="${esc(currentUser()?currentUser().name:"")}"
+          style="background:var(--green-soft);font-weight:700;color:var(--green)"></div>
+      <div style="font-size:11.5px;color:var(--ink-3);margin-top:4px">
+        ℹ ຫົວໜ້າກະໂລຈິສຕິກ ແລະ ຫົວໜ້າພະແນກ ຈະອະນຸມັດຜ່ານບັນຊີ «ຜູ້ອະນຸມັດ»
+      </div>
+    </div>
+    <div class="sec">
+      <h3><span class="n">🕐</span> ຂື້ນສຳເລັດ</h3>
+      <div class="field"><label>ເວລາຂື້ນສຳເລັດ (ຊມ/ນາທີ)</label>
+        <input type="time" data-k="timeEnd" value="${esc(draft.timeEnd)}"></div>
+    </div>
+  `, footBtns(true));
+  bindFoot(true);
+  app.querySelectorAll("#tarpopts .opt").forEach(b=>b.onclick=()=>{
+    draft.tarp=b.dataset.t;
+    app.querySelectorAll("#tarpopts .opt").forEach(x=>x.classList.toggle("on",x===b));
+  });
+  app.querySelectorAll(".sig").forEach(box=>{
+    const id=box.dataset.s, cv=box.querySelector("canvas"), ctx=cv.getContext("2d");
+    const ink=getComputedStyle(document.documentElement).getPropertyValue("--ink").trim();
+    ctx.strokeStyle=ink; ctx.lineWidth=2.4; ctx.lineCap="round"; ctx.lineJoin="round";
+    if(draft.sigImgs[id]){
+      const im=new Image();
+      im.onload=()=>ctx.drawImage(im,0,0,cv.width,cv.height);
+      im.src=draft.sigImgs[id];
+    }
+    let drawing=false;
+    const pos=e=>{
+      const r=cv.getBoundingClientRect();
+      return [(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height];
+    };
+    const start=e=>{drawing=true; const [x,y]=pos(e); ctx.beginPath(); ctx.moveTo(x,y); e.preventDefault()};
+    const move=e=>{
+      if(!drawing)return; const [x,y]=pos(e); ctx.lineTo(x,y); ctx.stroke();
+      if(!draft.sigs[id]){draft.sigs[id]=true; box.classList.add("signed");
+        box.querySelector(".cap span").textContent="✓ "+SIG_ROLES.find(r=>r.id===id).name;}
+      e.preventDefault();
+    };
+    const end=()=>{
+      if(drawing && draft.sigs[id]) draft.sigImgs[id]=cv.toDataURL("image/png");
+      drawing=false;
+    };
+    cv.addEventListener("pointerdown",start); cv.addEventListener("pointermove",move);
+    cv.addEventListener("pointerup",end); cv.addEventListener("pointerleave",end);
+    box.querySelector(".clr").onclick=()=>{
+      ctx.clearRect(0,0,cv.width,cv.height);
+      draft.sigs[id]=false; delete draft.sigImgs[id];
+      box.classList.remove("signed");
+      box.querySelector(".cap span").textContent=SIG_ROLES.find(r=>r.id===id).name;
+    };
+  });
+}
+
+/* ================= confirm (summary before save) ================= */
+function commitDraft(){
+  draft.sigs.driver=true;
+  draft.sigs.qc=true;
+  const resub = draft.status==="returned";
+  draft.status = "wait_check";
+  logAdd(draft, resub ? "resubmitted" : "submitted");
+  if(editId){
+    const i=records.findIndex(r=>r.uid===editId);
+    if(i>=0) records[i]=draft; else records.unshift(draft);
+  } else {
+    records.unshift(draft);
+  }
+  save();
+  queuePush({action:"saveRecord", record:slimRecord(draft)});
+  (draft.photos||[]).forEach((p,i)=>queuePush({action:"savePhoto", uid:draft.uid, index:i, dataUrl:p}));
+  clearDraftLocal(); draft=null;
+  view={name:"home",filter:"all",q:""}; render();
+  toast("✓ ສົ່ງແລ້ວ — ລໍຖ້າຜູ້ກວດສອບ");
+  editId=null;
+}
+
+function pushRecordUpdate(r){
+  save();
+  queuePush({action:"saveRecord", record:slimRecord(r)});
+}
+
+function renderConfirm(){
+  const d=draft;
+  const totalBags=d.lots.reduce((s,l)=>s+(+l.bags||0),0);
+  const failed=CHECK_ITEMS.filter(c=>!c.neutral&&d.checks[c.id]==="b");
+  app.innerHTML=`
+    <div class="appbar">
+      <div class="row">
+        <button class="backbtn" id="cback" aria-label="ກັບຄືນ">‹</button>
+        <div>
+          <h1>ສະຫຼຸບຂໍ້ມູນ</h1>
+          <div class="sub">ກວດຄືນກ່ອນຢືນຢັນບັນທຶກ</div>
+        </div>
+        <span class="formcode">Rev.07</span>
+      </div>
+    </div>
+    <div class="scroll">
+      <div class="sec">
+        <h3><span class="n">🚚</span> ຂໍ້ມູນທົ່ວໄປ</h3>
+        <div class="kv"><span class="k">ວັນທີ</span><span class="v">${fmtDate(d.date)}</span></div>
+        <div class="kv"><span class="k">ທະບຽນລົດ</span><span class="v mono">${esc(d.plate)}</span></div>
+        <div class="kv"><span class="k">ປະເພດລົດ</span><span class="v">${esc(d.truckType)}</span></div>
+        <div class="kv"><span class="k">ບໍລິສັດຂົນສົ່ງ</span><span class="v">${esc(d.transport)}</span></div>
+        <div class="kv"><span class="k">ລູກຄ້າປາຍທາງ</span><span class="v">${esc(d.customer)}</span></div>
+        <div class="kv"><span class="k">ເວລາເລີ່ມຂື້ນ</span><span class="v mono">${esc(d.timeStart)||"–"}</span></div>
+        <div class="kv"><span class="k">ປີການຜະລິດ</span><span class="v mono">${esc(d.prodYear)||"–"}</span></div>
+        <div class="kv"><span class="k">ໃບ COA</span><span class="v">${d.coa?'<span class="badge-ok">✓ ຂໍ</span>':"ບໍ່ຂໍ"}</span></div>
+      </div>
+      <div class="sec">
+        <h3><span class="n">1</span> ສະພາບລົດກ່ອນ Load</h3>
+        ${failed.length===0
+          ?`<span class="badge-ok">✓ ຜ່ານທຸກລາຍການ (${CHECK_ITEMS.length})</span>`
+          :failed.map(c=>`<div class="kv"><span class="k">${c.name}</span><span class="v"><span class="badge-bad">✕ ${c.b}</span></span></div>`).join("")}
+        ${d.otherNote?`<div class="kv"><span class="k">ອື່ນໆ</span><span class="v">${esc(d.otherNote)}</span></div>`:""}
+        ${(d.photos&&d.photos.length)?`<div class="kv"><span class="k">ຮູບແນບ</span><span class="v mono">${d.photos.length} ຮູບ</span></div>`:""}
+      </div>
+      <div class="sec">
+        <h3><span class="n">2</span> ສະພາບນ້ຳຕານ</h3>
+        <div class="kv"><span class="k">ຊະນິດ</span><span class="v">${esc(d.sugarType)}</span></div>
+        <div class="kv"><span class="k">ຂະໜາດບັນຈຸ</span><span class="v">${esc(d.pack)}</span></div>
+        <div class="kv"><span class="k">ຈຳນວນບັນທຸກ</span><span class="v mono">${d.tons} TON</span></div>
+        <div class="kv"><span class="k">ບ່ອນຂື້ນ</span><span class="v">${esc(d.bay)}</span></div>
+        <div class="kv"><span class="k">ລວມ</span><span class="v mono">${d.lots.length} Lot · ${totalBags.toLocaleString()} ກະສອບ</span></div>
+        ${d.lots.map((l,i)=>`
+          <div class="kv">
+            <span class="k mono">${i+1}. ${esc(l.no)}</span>
+            <span class="v">
+              <span class="mono">${(+l.bags||0).toLocaleString()}</span> ·
+              ${l.clean?'<span class="badge-ok">ສະອາດ</span>':'<span class="badge-bad">ບໍ່ສະອາດ</span>'}
+              ${l.firm?'<span class="badge-ok">ແຂງ</span>':'<span class="badge-bad">ບໍ່ແຂງ</span>'}
+            </span>
+          </div>`).join("")}
+      </div>
+      <div class="sec">
+        <h3><span class="n">3</span> ຜ້າໃບ / Seal ແລະ ຜູ້ລົງນາມ</h3>
+        <div class="kv"><span class="k">ການປົກຜ້າໃບ</span><span class="v">${d.tarp==="ຮຽບຮ້ອຍ"?'<span class="badge-ok">✓ ຮຽບຮ້ອຍ</span>':'<span class="badge-bad">✕ ບໍ່ຮຽບຮ້ອຍ</span>'}</span></div>
+        <div class="kv"><span class="k">Seal No.</span><span class="v mono">${esc(d.seal)||"–"}</span></div>
+        ${d.note?`<div class="kv"><span class="k">ໝາຍເຫດ</span><span class="v">${esc(d.note)}</span></div>`:""}
+        <div class="kv"><span class="k">ພະນັກງານຂັບລົດ</span><span class="v">${esc(d.driverName)}</span></div>
+        <div class="kv"><span class="k">ຜູ້ບັນທຶກ (QC)</span><span class="v">${esc(d.recordedBy?d.recordedBy.name:"")}</span></div>
+        <div class="kv"><span class="k">ຂື້ນສຳເລັດ</span><span class="v mono">${esc(d.timeEnd)||"–"}</span></div>
+      </div>
+      <div style="height:8px"></div>
+    </div>
+    <div class="foot">
+      <button class="btn" id="cedit">‹ ກັບໄປແກ້ໄຂ</button>
+      <button class="btn gold" id="cconfirm">✓ ຢືນຢັນຂໍ້ມູນ</button>
+    </div>
+  `;
+  const backToEdit=()=>{view={name:"wizard"}; step=3; render()};
+  app.querySelector("#cback").onclick=backToEdit;
+  app.querySelector("#cedit").onclick=backToEdit;
+  app.querySelector("#cconfirm").onclick=commitDraft;
+}
+
+/* ================= detail ================= */
+function renderDetail(){
+  const r=records.find(x=>x.uid===view.uid);
+  if(!r){view={name:"home",filter:"all",q:""}; return render()}
+  const totalBags=r.lots.reduce((s,l)=>s+(+l.bags||0),0);
+  const failed=CHECK_ITEMS.filter(c=>!c.neutral&&r.checks[c.id]==="b");
+  app.innerHTML=`
+    <div class="appbar">
+      <div class="row">
+        <button class="backbtn" id="dback" aria-label="ກັບຄືນ">‹</button>
+        <div>
+          <h1>${esc(r.plate)} · ${esc(r.customer)||"–"}</h1>
+          <div class="sub">${fmtDate(r.date)} · ${STATUS[r.status][0]}</div>
+        </div>
+        <span class="formcode">#${String(r.id).padStart(4,"0")}</span>
+      </div>
+    </div>
+    <div class="scroll">
+      ${(r.status==="returned"&&r.returnNote)?`<div class="retnote">↩ ຜູ້ກວດສອບສົ່ງກັບແກ້ໄຂ: ${esc(r.returnNote)}</div>`:""}
+      ${(r.status==="rejected"&&r.rejectNote)?`<div class="retnote">↩ ຜູ້ອະນຸມັດບໍ່ຜ່ານ: ${esc(r.rejectNote)}</div>`:""}
+      <div class="sec">
+        <h3><span class="n">🚚</span> ຂໍ້ມູນທົ່ວໄປ</h3>
+        <div class="kv"><span class="k">ຜູ້ບັນທຶກ</span><span class="v">${r.recordedBy?esc(r.recordedBy.name)+' <span class="mono">('+esc(r.recordedBy.username)+')</span>':"–"}</span></div>
+        <div class="kv"><span class="k">ທະບຽນລົດ</span><span class="v mono">${esc(r.plate)}</span></div>
+        <div class="kv"><span class="k">ປະເພດລົດ</span><span class="v">${esc(r.truckType)||"–"}</span></div>
+        <div class="kv"><span class="k">ບໍລິສັດຂົນສົ່ງ</span><span class="v">${esc(r.transport)||"–"}</span></div>
+        <div class="kv"><span class="k">ລູກຄ້າປາຍທາງ</span><span class="v">${esc(r.customer)||"–"}</span></div>
+        <div class="kv"><span class="k">ເວລາຂື້ນ</span><span class="v mono">${esc(r.timeStart)||"–"} → ${esc(r.timeEnd)||"–"}</span></div>
+        <div class="kv"><span class="k">ປີການຜະລິດ</span><span class="v mono">${esc(r.prodYear)}</span></div>
+        <div class="kv"><span class="k">ໃບ COA</span><span class="v">${r.coa?'<span class="badge-ok">✓ ຂໍ</span>':"ບໍ່ຂໍ"}</span></div>
+      </div>
+      <div class="sec">
+        <h3><span class="n">1</span> ສະພາບລົດກ່ອນ Load</h3>
+        ${Object.keys(r.checks).length===0
+          ?`<div style="font-size:13px;color:var(--ink-3)">ຍັງບໍ່ໄດ້ກວດ</div>`
+          :failed.length===0
+            ?`<span class="badge-ok">✓ ຜ່ານທຸກລາຍການ (${CHECK_ITEMS.length})</span>`
+            :failed.map(c=>`<div class="kv"><span class="k">${c.name}</span><span class="v"><span class="badge-bad">✕ ${c.b}</span></span></div>`).join("")}
+        ${r.otherNote?`<div class="kv"><span class="k">ອື່ນໆ</span><span class="v">${esc(r.otherNote)}</span></div>`:""}
+        ${(()=>{const ps=(r.photos&&r.photos.length)?r.photos:(r.photoUrls||[]);
+          return ps.length?`<div class="photos">${ps.map(p=>`<img src="${p}" alt="ຮູບສະພາບລົດ" loading="lazy">`).join("")}</div>`:""})()}
+      </div>
+      <div class="sec">
+        <h3><span class="n">2</span> ສະພາບນ້ຳຕານ</h3>
+        <div class="kv"><span class="k">ຊະນິດ</span><span class="v">${esc(r.sugarType)||"–"}</span></div>
+        <div class="kv"><span class="k">ຂະໜາດບັນຈຸ</span><span class="v">${esc(r.pack)||"–"}</span></div>
+        <div class="kv"><span class="k">ຈຳນວນບັນທຸກ</span><span class="v mono">${r.tons||"–"} TON</span></div>
+        <div class="kv"><span class="k">ບ່ອນຂື້ນ</span><span class="v">${esc(r.bay)||"–"}</span></div>
+        <div class="kv"><span class="k">ລວມ</span><span class="v mono">${r.lots.length} Lot · ${totalBags.toLocaleString()} ກະສອບ</span></div>
+        ${r.lots.map((l,i)=>`
+          <div class="kv">
+            <span class="k mono">${i+1}. ${esc(l.no)||"(ບໍ່ມີເລກ)"}</span>
+            <span class="v">
+              <span class="mono">${(+l.bags||0).toLocaleString()}</span> ·
+              ${l.clean?'<span class="badge-ok">ສະອາດ</span>':'<span class="badge-bad">ບໍ່ສະອາດ</span>'}
+              ${l.firm?'<span class="badge-ok">ແຂງ</span>':'<span class="badge-bad">ບໍ່ແຂງ</span>'}
+            </span>
+          </div>`).join("")}
+      </div>
+      <div class="sec">
+        <h3><span class="n">3</span> ຜ້າໃບ / Seal ແລະ ລາຍເຊັນ</h3>
+        <div class="kv"><span class="k">ການປົກຜ້າໃບ</span><span class="v">${r.tarp==="ຮຽບຮ້ອຍ"?'<span class="badge-ok">✓ ຮຽບຮ້ອຍ</span>':r.tarp?'<span class="badge-bad">✕ ບໍ່ຮຽບຮ້ອຍ</span>':"–"}</span></div>
+        <div class="kv"><span class="k">Seal No.</span><span class="v mono">${esc(r.seal)||"–"}</span></div>
+        ${r.note?`<div class="kv"><span class="k">ໝາຍເຫດ</span><span class="v">${esc(r.note)}</span></div>`:""}
+        ${SIG_ROLES.map(s=>{
+          let v;
+          if(s.id==="driver"){
+            v = r.driverName
+              ? `<span class="badge-ok">✓</span> ${esc(r.driverName)}`
+              : (r.sigs&&r.sigs.driver?'<span class="badge-ok">✓ ເຊັນແລ້ວ</span>':'<span class="badge-bad">ຍັງບໍ່ລະບຸ</span>');
+          } else if(s.id==="qc"){
+            v = r.recordedBy
+              ? `<span class="badge-ok">✓</span> ${esc(r.recordedBy.name)}`
+              : (r.sigs&&r.sigs.qc?'<span class="badge-ok">✓ ເຊັນແລ້ວ</span>':'<span class="badge-bad">ຍັງບໍ່ລະບຸ</span>');
+          } else {
+            v = (r.sigImgs&&r.sigImgs[s.id])
+              ?`<img class="sigimg" src="${r.sigImgs[s.id]}" alt="ລາຍເຊັນ ${s.name}">`
+              :(r.sigs&&r.sigs[s.id])?'<span class="badge-ok">✓ ເຊັນແລ້ວ</span>':'<span class="badge-bad">ຍັງບໍ່ເຊັນ</span>';
+          }
+          return `<div class="kv"><span class="k">${s.name}</span><span class="v">${v}</span></div>`;
+        }).join("")}
+        ${r.checkedBy?`<div class="kv"><span class="k">ກວດສອບໂດຍ</span><span class="v">${esc(r.checkedBy.name)} <span class="mono">(${esc(r.checkedBy.username)})</span></span></div>`:""}
+        ${r.approvedBy?`<div class="kv"><span class="k">ອະນຸມັດໂດຍ</span><span class="v">${esc(r.approvedBy.name)} <span class="mono">(${esc(r.approvedBy.username)})</span></span></div>`:""}
+      </div>
+      <div class="sec">
+        <h3><span class="n">🕓</span> ປະຫວັດການດຳເນີນການ (Log)</h3>
+        ${(r.log&&r.log.length)?r.log.map(e=>`
+          <div class="kv">
+            <span class="k"><span class="mono">${fmtTs(e.ts)}</span> · ${ACTION_LABELS[e.action]||esc(e.action)}${e.note?`<br><span style="color:var(--bad)">“${esc(e.note)}”</span>`:""}</span>
+            <span class="v">${esc(e.by)}</span>
+          </div>`).join("")
+          :`<div style="font-size:12.5px;color:var(--ink-3)">ຍັງບໍ່ມີປະຫວັດ</div>`}
+      </div>
+      <div style="text-align:center;font-size:10.5px;color:var(--ink-3);padding:6px 0 20px" class="mono">
+        ML-FM-1610-012 : 12/06/2026 : Rev.07
+      </div>
+    </div>
+    <div class="foot" id="dfoot"></div>
+  `;
+  const back=()=>{view={name:"home",filter:"all",q:""}; render()};
+  app.querySelector("#dback").onclick=back;
+
+  const me=currentUser();
+  const foot=app.querySelector("#dfoot");
+  const canEdit = me && me.role==="recorder" && r.recordedBy && r.recordedBy.username===me.username
+    && (r.status==="draft"||r.status==="returned");
+  const canCheck = me && me.role==="checker" && (r.status==="wait_check"||r.status==="rejected");
+  const canApprove = me && me.role==="approver" && r.status==="wait_approve";
+
+  if(canCheck){
+    foot.innerHTML=`
+      <button class="btn" id="dhome">‹</button>
+      <button class="btn" id="dreturn" style="color:var(--bad);border-color:var(--bad)">✕ ສົ່ງກັບແກ້ໄຂ</button>
+      <button class="btn primary" id="dpass">✓ ຜ່ານກວດສອບ</button>`;
+    app.querySelector("#dreturn").onclick=()=>{
+      const note=prompt("ເຫດຜົນທີ່ສົ່ງກັບແກ້ໄຂ (ຈຳເປັນ):");
+      if(note===null) return;
+      if(!note.trim()){toast("⚠ ກະລຸນາລະບຸເຫດຜົນ"); return}
+      r.status="returned"; r.returnNote=note.trim();
+      r.checkedBy={name:me.name, username:me.username};
+      logAdd(r,"returned",note.trim());
+      pushRecordUpdate(r); back(); toast("↩ ສົ່ງກັບໄປຫາ "+(r.recordedBy?r.recordedBy.username:"ຜູ້ບັນທຶກ"));
+    };
+    app.querySelector("#dpass").onclick=()=>{
+      r.status="wait_approve"; r.returnNote="";
+      r.checkedBy={name:me.name, username:me.username};
+      r.sigs=r.sigs||{}; r.sigs.logis=true;
+      logAdd(r,"checked");
+      pushRecordUpdate(r); back(); toast("✓ ຜ່ານກວດສອບ — ສົ່ງໄປຜູ້ອະນຸມັດ");
+    };
+  } else if(canApprove){
+    foot.innerHTML=`
+      <button class="btn" id="dhome">‹</button>
+      <button class="btn" id="dreject" style="color:var(--bad);border-color:var(--bad)">✕ ບໍ່ຜ່ານ</button>
+      <button class="btn gold" id="dapprove">✓ ອະນຸມັດ</button>`;
+    app.querySelector("#dreject").onclick=()=>{
+      const note=prompt("ເຫດຜົນທີ່ບໍ່ຜ່ານ (ຈຳເປັນ):");
+      if(note===null) return;
+      if(!note.trim()){toast("⚠ ກະລຸນາລະບຸເຫດຜົນ"); return}
+      r.status="rejected"; r.rejectNote=note.trim();
+      r.approvedBy=null;
+      logAdd(r,"rejected",note.trim());
+      pushRecordUpdate(r); back(); toast("↩ ສົ່ງກັບໄປຫາຜູ້ກວດສອບ "+(r.checkedBy?r.checkedBy.username:""));
+    };
+    app.querySelector("#dapprove").onclick=()=>{
+      r.status="done"; r.rejectNote="";
+      r.approvedBy={name:me.name, username:me.username};
+      r.sigs=r.sigs||{}; r.sigs.qa=true;
+      logAdd(r,"approved");
+      pushRecordUpdate(r); back(); toast("✓ ອະນຸມັດແລ້ວ — ບັນທຶກສົມບູນ");
+    };
+  } else {
+    const showPrint = me && me.role!=="recorder";
+    foot.innerHTML=`
+      <button class="btn" id="dhome">‹ ໜ້າຫຼັກ</button>
+      ${canEdit?`<button class="btn primary" id="dedit">✎ ແກ້ໄຂ</button>`:""}
+      ${showPrint?`<button class="btn primary" id="dprint">🖨 ພິມ / PDF</button>`:""}`;
+    const de=app.querySelector("#dedit");
+    if(de) de.onclick=()=>{
+      draft=JSON.parse(JSON.stringify(r)); editId=r.uid;
+      view={name:"wizard"}; step=0; render();
+    };
+    const dp=app.querySelector("#dprint");
+    if(dp) dp.onclick=()=>window.print();
+  }
+  app.querySelector("#dhome").onclick=back;
+}
+
+/* ================= router ================= */
+function render(){
+  const authViews=["login","adminlogin","admin"];
+  if(!currentUser() && !authViews.includes(view.name)) view={name:"login"};
+  if(view.name==="login") renderLogin();
+  else if(view.name==="adminlogin") renderAdminLogin();
+  else if(view.name==="admin") renderAdmin();
+  else if(view.name==="home") renderHome();
+  else if(view.name==="detail") renderDetail();
+  else if(view.name==="confirm") renderConfirm();
+  else if(view.name==="wizard"){
+    if(step===0)renderStep0();
+    else if(step===1)renderStep1();
+    else if(step===2)renderStep2();
+    else renderStep3();
+  }
+}
+render();
+flushQueue();
+refreshRemote();
+
+/* ================= PWA ================= */
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+window.addEventListener("beforeinstallprompt",e=>{
+  e.preventDefault(); deferredPrompt=e;
+  if(view.name==="home") renderHome();
+});
+window.addEventListener("appinstalled",()=>{deferredPrompt=null; if(view.name==="home") renderHome()});
+</script>
+</body>
+</html>
