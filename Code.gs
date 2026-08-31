@@ -46,8 +46,26 @@ function doGet(e) {
   return jsonOut({ ok: true, service: "sugar-delivery", time: new Date() });
 }
 
+/* ================================================================
+ * LINE Bot — พิมพ์ "check" ในไลน์ แล้วบอทตอบสรุปงานค้าง (ฟรี ไม่นับโควตา)
+ *
+ * ===== วิธีติดตั้ง LINE Bot (ทำครั้งเดียว) =====
+ * 1. เข้า https://developers.line.biz/console/ (ล็อกอินด้วย LINE)
+ *    → Create provider (ตั้งชื่ออะไรก็ได้) → Create Messaging API channel
+ *    → ตั้งชื่อบอท เช่น "Sugar Dispatch Bot" → สร้าง
+ * 2. แท็บ Messaging API → เลื่อนล่างสุด → Channel access token → กด Issue
+ *    → คัดลอก token มาวางแทน PASTE_TOKEN_HERE ข้างล่างนี้ → Save → Deploy เวอร์ชันใหม่
+ * 3. แท็บ Messaging API → Webhook URL → วาง URL ของ Web App (ลงท้าย /exec)
+ *    → กด Verify (ต้องขึ้น Success) → เปิดสวิตช์ "Use webhook"
+ * 4. ปิดข้อความตอบกลับอัตโนมัติ: LINE Official Account Manager
+ *    (manager.line.biz) → ตั้งค่า → การตอบกลับ → ปิด "ตอบกลับอัตโนมัติ"
+ * 5. สแกน QR ของบอท (แท็บ Messaging API) เพิ่มเพื่อน → พิมพ์ check
+ * ================================================================ */
+var LINE_TOKEN = "PASTE_TOKEN_HERE";
+
 function doPost(e) {
   var body = JSON.parse(e.postData.contents);
+  if (body.events) return handleLineWebhook(body);      // LINE Bot
   if (body.action === "saveRecord") saveRecord(body.record);
   else if (body.action === "saveUsers") saveUsers(body.users);
   else if (body.action === "savePhoto") savePhoto(body);
@@ -68,6 +86,84 @@ function deleteRecord(uid) {
   for (var j = pd.length - 1; j >= 1; j--) {
     if (String(pd[j][0]) === String(uid)) ps.deleteRow(j + 1);
   }
+}
+
+/* ---------- LINE Bot ---------- */
+function handleLineWebhook(body) {
+  body.events.forEach(function (ev) {
+    if (ev.type === "message" && ev.message && ev.message.type === "text" && ev.replyToken) {
+      var txt = String(ev.message.text).trim().toLowerCase();
+      var triggers = ["check", "เช็ค", "เช็ก", "สถานะ", "status", "ตรวจ", "งาน"];
+      if (triggers.indexOf(txt) >= 0) {
+        lineReply(ev.replyToken, buildStatusReport());
+      }
+    }
+  });
+  return jsonOut({ ok: true });
+}
+
+function buildStatusReport() {
+  var recs = getRecords();
+  var c = { draft: 0, wait_check: 0, wait_approve: 0, returned: 0, rejected: 0, done: 0 };
+  recs.forEach(function (r) {
+    var s = r.status === "wait" ? "wait_check" : r.status;
+    if (c[s] != null) c[s]++;
+  });
+  var pending = c.draft + c.wait_check + c.wait_approve + c.returned + c.rejected;
+
+  var today = Utilities.formatDate(new Date(), "GMT+7", "yyyy-MM-dd");
+  var tRecs = recs.filter(function (r) { return r.date === today; });
+  var tTons = 0;
+  tRecs.forEach(function (r) { tTons += Number(r.tons) || 0; });
+
+  // รายการที่ค้าง (สูงสุด 8 รายการ)
+  var pendList = recs.filter(function (r) {
+    var s = r.status === "wait" ? "wait_check" : r.status;
+    return s !== "done";
+  }).slice(0, 8);
+  var stName = { draft: "ร่าง", wait_check: "รอตรวจสอบ", wait_approve: "รออนุมัติ", returned: "ส่งกลับแก้ไข", rejected: "ไม่ผ่านอนุมัติ", wait: "รอตรวจสอบ" };
+  var lines = pendList.map(function (r) {
+    return "• " + r.plate + " — " + (stName[r.status] || r.status) +
+      (r.recordedBy ? " (" + r.recordedBy.username + ")" : "");
+  });
+
+  var now = Utilities.formatDate(new Date(), "GMT+7", "dd/MM/yyyy HH:mm");
+  return "🚛 SUGAR DISPATCH\n" +
+    "━━━━━━━━━━━━━━\n" +
+    "📋 ค้างดำเนินการ: " + pending + " รายการ\n" +
+    "  📝 ร่าง: " + c.draft + "\n" +
+    "  🔎 รอตรวจสอบ: " + c.wait_check + "\n" +
+    "  ⏳ รออนุมัติ: " + c.wait_approve + "\n" +
+    "  ↩️ ส่งกลับแก้ไข: " + c.returned + "\n" +
+    "  ❌ ไม่ผ่านอนุมัติ: " + c.rejected + "\n" +
+    "✅ สำเร็จสะสม: " + c.done + " รายการ\n" +
+    "━━━━━━━━━━━━━━\n" +
+    "📅 วันนี้: " + tRecs.length + " คัน / " + (Math.round(tTons * 100) / 100) + " ตัน\n" +
+    (lines.length ? "━━━━━━━━━━━━━━\nรายการค้าง:\n" + lines.join("\n") + "\n" : "") +
+    "🕐 " + now;
+}
+
+function lineReply(replyToken, text) {
+  if (!LINE_TOKEN || LINE_TOKEN === "PASTE_TOKEN_HERE") return;
+  UrlFetchApp.fetch("https://api.line.me/v2/bot/message/reply", {
+    method: "post",
+    contentType: "application/json",
+    headers: { Authorization: "Bearer " + LINE_TOKEN },
+    payload: JSON.stringify({ replyToken: replyToken, messages: [{ type: "text", text: text }] }),
+    muteHttpExceptions: true,
+  });
+}
+
+/* รันฟังก์ชันนี้ 1 ครั้งหลังวาง token เพื่อ (1) ให้ Google ขอสิทธิ์เชื่อมต่อภายนอก
+ * (2) เช็คว่า token ถูกต้อง — ดูผลใน Execution log */
+function testLineSetup() {
+  var resp = UrlFetchApp.fetch("https://api.line.me/v2/bot/info", {
+    headers: { Authorization: "Bearer " + LINE_TOKEN },
+    muteHttpExceptions: true,
+  });
+  Logger.log(resp.getResponseCode() === 200
+    ? "✅ token ใช้ได้ — บอทชื่อ: " + JSON.parse(resp.getContentText()).displayName
+    : "❌ token ไม่ถูกต้อง: " + resp.getContentText());
 }
 
 /* ---------- audit log (ใครทำอะไร เมื่อไหร่) ---------- */
