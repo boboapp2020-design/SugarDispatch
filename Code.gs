@@ -43,6 +43,7 @@ function doGet(e) {
   var action = (e && e.parameter && e.parameter.action) || "";
   if (action === "getUsers") return jsonOut(getUsers());
   if (action === "getRecords") return jsonOut(getRecords());
+  if (action === "getLineLog") return jsonOut(getLineLog());
   return jsonOut({ ok: true, service: "sugar-delivery", time: new Date() });
 }
 
@@ -175,8 +176,11 @@ function buildStatusFlex() {
 }
 
 function lineReplyFlex(replyToken, bubble) {
-  if (!LINE_TOKEN || LINE_TOKEN === "PASTE_TOKEN_HERE") return;
-  UrlFetchApp.fetch("https://api.line.me/v2/bot/message/reply", {
+  if (!LINE_TOKEN || LINE_TOKEN === "PASTE_TOKEN_HERE") {
+    lineLog_("SKIP", "LINE_TOKEN ยังไม่ได้ใส่");
+    return;
+  }
+  var resp = UrlFetchApp.fetch("https://api.line.me/v2/bot/message/reply", {
     method: "post",
     contentType: "application/json",
     headers: { Authorization: "Bearer " + LINE_TOKEN },
@@ -186,6 +190,45 @@ function lineReplyFlex(replyToken, bubble) {
     }),
     muteHttpExceptions: true,
   });
+  lineLog_("FLEX " + resp.getResponseCode(), resp.getContentText().slice(0, 400));
+  if (resp.getResponseCode() !== 200) {
+    // การ์ดถูกปฏิเสธ — ส่งแบบข้อความธรรมดาแทน (replyToken ยังใช้ได้)
+    var resp2 = UrlFetchApp.fetch("https://api.line.me/v2/bot/message/reply", {
+      method: "post",
+      contentType: "application/json",
+      headers: { Authorization: "Bearer " + LINE_TOKEN },
+      payload: JSON.stringify({
+        replyToken: replyToken,
+        messages: [{ type: "text", text: buildStatusText_() }],
+      }),
+      muteHttpExceptions: true,
+    });
+    lineLog_("TEXT-FALLBACK " + resp2.getResponseCode(), resp2.getContentText().slice(0, 400));
+  }
+}
+
+function buildStatusText_() {
+  var s = statusCounts_();
+  var now = Utilities.formatDate(new Date(), "GMT+7", "dd/MM/yyyy HH:mm");
+  return "🚛 SUGAR DISPATCH\n📋 ค้างดำเนินการ: " + s.pending + " รายการ\n" +
+    "📝 ร่าง: " + s.c.draft + " | 🔎 รอตรวจ: " + s.c.wait_check + "\n" +
+    "⏳ รออนุมัติ: " + s.c.wait_approve + " | ↩️ ส่งกลับ: " + (s.c.returned + s.c.rejected) + "\n" +
+    "✅ สำเร็จ: " + s.c.done + "\n📅 วันนี้: " + s.tCount + " คัน / " + s.tTons + " ตัน\n" +
+    (s.pendList.length ? s.pendList.join("\n") + "\n" : "") + "🕐 " + now;
+}
+
+var LINELOG_SHEET = "LineLog";
+function lineLog_(status, detail) {
+  try {
+    var sh = getSheet(LINELOG_SHEET, ["ts", "status", "detail"]);
+    sh.appendRow([new Date(), status, detail]);
+  } catch (e) {}
+}
+function getLineLog() {
+  var sh = getSheet(LINELOG_SHEET, ["ts", "status", "detail"]);
+  var rows = sh.getDataRange().getValues();
+  rows.shift();
+  return rows.slice(-10).map(function (r) { return { ts: r[0], status: r[1], detail: r[2] }; });
 }
 
 function lineReply(replyToken, text) {
