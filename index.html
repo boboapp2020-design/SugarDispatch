@@ -1127,6 +1127,7 @@ function adminRecordsHTML(){
   return `
     <div class="sec">
       <h3 style="color:#1F3A68"><span class="n" style="background:#1F3A68">🗂</span> ข้อมูลบันทึกทั้งหมด (${records.length})</h3>
+      <button class="loginbtn" id="radd" style="margin-bottom:12px">＋ เพิ่มข้อมูลบันทึกใหม่</button>
       <div class="field">
         <input id="aq" placeholder="ค้นหา ทะเบียน / ลูกค้า / ผู้บันทึก" value="${esc(view.aq||"")}">
       </div>
@@ -1268,6 +1269,11 @@ function renderAdmin(){
   if(nc) nc.onclick=()=>{adminEditId=null; renderAdmin()};
 
   /* records tab handlers */
+  const ra=app.querySelector("#radd");
+  if(ra) ra.onclick=()=>{
+    startDraft(); editId=null;
+    view={name:"wizard"}; step=0; render();
+  };
   const aq=app.querySelector("#aq");
   if(aq) aq.addEventListener("input",e=>{
     view.aq=e.target.value; renderAdmin();
@@ -1423,6 +1429,60 @@ function dashHTML(recs){
     </div>`;
 }
 
+/* ---- email summary report (mailto — opens the phone's mail app) ---- */
+function buildMailReport(){
+  const now=new Date();
+  const p=n=>String(n).padStart(2,"0");
+  const nowStr=`${p(now.getDate())}/${p(now.getMonth()+1)}/${now.getFullYear()} ${p(now.getHours())}:${p(now.getMinutes())}`;
+  const today=now.toISOString().slice(0,10);
+  const active=records.filter(r=>r.status!=="draft");
+  const cnt=k=>records.filter(r=>r.status===k).length;
+  const tons=active.reduce((s,r)=>s+(+r.tons||0),0);
+  const bags=active.reduce((s,r)=>s+r.lots.reduce((x,l)=>x+(+l.bags||0),0),0);
+  const tRecs=active.filter(r=>r.date===today);
+  const tTons=tRecs.reduce((s,r)=>s+(+r.tons||0),0);
+  const agg=key=>{
+    const m={};
+    active.forEach(r=>{const k=r[key]||"–"; m[k]=(m[k]||0)+(+r.tons||0)});
+    return Object.entries(m).sort((a,b)=>b[1]-a[1])
+      .map(([k,v])=>`  - ${k}: ${(+v.toFixed(2)).toLocaleString()} t`).join("\n");
+  };
+  const pend=records.filter(r=>r.status!=="done"&&r.status!=="draft").slice(0,10)
+    .map(r=>`  - ${r.plate} | ${STATUS[r.status][0]} | ${r.customer||"–"} | ${r.tons||0} t${r.recordedBy?` | ${r.recordedBy.username}`:""}`).join("\n");
+  const me=currentUser();
+  const body=
+`ລາຍງານສະຫຼຸບການຈ່າຍນ້ຳຕານ — SUGAR DISPATCH
+ອອກລາຍງານ: ${nowStr}
+ໂດຍ: ${me?me.name+" ("+me.username+")":"-"}
+
+=== ພາບລວມ ===
+- ມື້ນີ້: ${tRecs.length} ຄັນ / ${(+tTons.toFixed(2)).toLocaleString()} ຕັນ
+- ສະສົມທັງໝົດ: ${active.length} ໃບ / ${(+tons.toFixed(2)).toLocaleString()} ຕັນ / ${bags.toLocaleString()} ກະສອບ
+
+=== ສະຖານະ ===
+- ລໍຖ້າກວດສອບ: ${cnt("wait_check")}
+- ລໍຖ້າອະນຸມັດ: ${cnt("wait_approve")}
+- ສົ່ງກັບແກ້ໄຂ: ${cnt("returned")+cnt("rejected")}
+- ສຳເລັດ: ${cnt("done")}
+
+=== ແຍກຕາມຊະນິດນ້ຳຕານ (TON) ===
+${agg("sugarType")||"  -"}
+
+=== ແຍກຕາມສາງ (TON) ===
+${agg("bay")||"  -"}
+
+=== ລາຍການຄ້າງດຳເນີນການ ===
+${pend||"  ບໍ່ມີ"}
+
+--
+ເປີດແອັບ: ${APP_URL}
+ML-FM-1610-012 Rev.07`;
+  return {
+    subject:`ລາຍງານການຈ່າຍນ້ຳຕານ ${p(now.getDate())}/${p(now.getMonth()+1)}/${now.getFullYear()}`,
+    body
+  };
+}
+
 /* ---- staff home: slide 1 = overview + my tasks, slide 2 = all reports with filters ---- */
 function renderHomeStaff(me){
   const tasks = myTasks(me);
@@ -1464,6 +1524,7 @@ function renderHomeStaff(me){
       <div class="slide">
         <div class="scroll">
           ${dashHTML(records)}
+          <button class="dbtn" id="mailreport" style="margin:2px 0 14px">📧 ສົ່ງເມລລາຍງານສະຫຼຸບ</button>
           <div class="tasklabel">📥 ວຽກທີ່ ${esc(me.username)} ຕ້ອງດຳເນີນການ (${tasks.length})</div>
           ${tasks.length ? tasks.map(recCardHTML).join("") : `<div class="empty">✓ ບໍ່ມີວຽກຄ້າງ</div>`}
           <div style="text-align:center;font-size:11px;color:var(--ink-3);padding:6px 0 4px">
@@ -1530,6 +1591,11 @@ function renderHomeStaff(me){
     setSession(null); view={name:"login"}; render(); toast("ອອກຈາກລະບົບແລ້ວ");
   };
   app.querySelector("#menubtn").onclick=openDrawer;
+  const mr=app.querySelector("#mailreport");
+  if(mr) mr.onclick=()=>{
+    const r=buildMailReport();
+    window.location.href="mailto:?subject="+encodeURIComponent(r.subject)+"&body="+encodeURIComponent(r.body);
+  };
   app.querySelectorAll(".rec").forEach(el=>{
     const open=()=>{view={name:"detail",uid:el.dataset.uid}; render()};
     el.onclick=open;
@@ -2185,16 +2251,23 @@ function renderStep3(){
 /* ================= confirm (summary before save) ================= */
 function commitDraft(){
   const meC=currentUser();
-  if(meC && meC.role==="admin" && editId){
-    // admin backend edit: keep status/workflow untouched, just log the change
-    logAdd(draft, "admin_edited");
-    const i=records.findIndex(r=>r.uid===editId);
+  if(meC && meC.role==="admin"){
+    const isEdit=!!editId;
+    if(isEdit){
+      logAdd(draft, "admin_edited");          // แก้ไข: คงสถานะเดิม ไม่แตะ workflow
+    } else {
+      draft.sigs.driver=true; draft.sigs.qc=true;
+      draft.status="wait_check";               // เพิ่มใหม่: เข้าคิวตรวจสอบตามปกติ
+      logAdd(draft, "submitted");
+    }
+    const i = isEdit ? records.findIndex(r=>r.uid===editId) : -1;
     if(i>=0) records[i]=draft; else records.unshift(draft);
     save();
     queuePush({action:"saveRecord", record:slimRecord(draft)});
+    (draft.photos||[]).forEach((p,idx)=>queuePush({action:"savePhoto", uid:draft.uid, index:idx, dataUrl:p}));
     clearDraftLocal(); draft=null; editId=null;
     view={name:"admin", atab:"records"}; render();
-    toast("✓ แก้ไขข้อมูลแล้ว (Admin)");
+    toast(isEdit ? "✓ แก้ไขข้อมูลแล้ว (Admin)" : "✓ เพิ่มข้อมูลแล้ว — เข้าคิวรอตรวจสอบ");
     return;
   }
   draft.sigs.driver=true;
