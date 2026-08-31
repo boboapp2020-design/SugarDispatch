@@ -795,7 +795,7 @@ async function flushQueue(){
 async function refreshRemote(){
   if(!apiUrl() || !navigator.onLine) return false;
   try{
-    const [ru, rr] = await Promise.all([
+    let [ru, rr] = await Promise.all([
       fetch(apiUrl()+"?action=getUsers").then(r=>r.json()),
       fetch(apiUrl()+"?action=getRecords").then(r=>r.json()),
     ]);
@@ -804,6 +804,8 @@ async function refreshRemote(){
       queuePush({action:"saveUsers", users});   // seed the empty Users sheet
     }
     if(Array.isArray(rr)){
+      const pendingDel = new Set(queue.filter(p=>p.action==="deleteRecord").map(p=>p.uid));
+      rr = rr.filter(r=>!pendingDel.has(r.uid));
       const pendingUids = new Set(queue.filter(p=>p.action==="saveRecord").map(p=>p.record.uid));
       const remoteUids  = new Set(rr.map(r=>r.uid));
       const localOnly   = records.filter(r=>!remoteUids.has(r.uid) && pendingUids.has(r.uid));
@@ -842,10 +844,26 @@ const ACTION_LABELS = {
   submitted:"ສົ່ງກວດສອບ", resubmitted:"ແກ້ໄຂ ແລະ ສົ່ງຄືນ",
   checked:"ຜ່ານກວດສອບ", returned:"ສົ່ງກັບແກ້ໄຂ",
   approved:"ອະນຸມັດ", rejected:"ບໍ່ຜ່ານອະນຸມັດ",
+  admin_edited:"แก้ไขข้อมูล (Admin)", admin_deleted:"ลบข้อมูล (Admin)",
+  user_added:"เพิ่มผู้ใช้", user_edited:"แก้ไขผู้ใช้", user_deleted:"ลบผู้ใช้",
+  admin_pass:"เปลี่ยนรหัสแอดมิน",
 };
+
+/* audit trail — every action queues a logEvent to the AuditLog sheet */
+const KEY_AUDIT = "sugarDelivery.audit.v1";
+let auditCache=[];
+try{ auditCache = JSON.parse(localStorage.getItem(KEY_AUDIT)) || []; }catch(e){}
+function audit(action, target, note){
+  const me=currentUser();
+  const ev={ts:new Date().toISOString(), user:me?me.username:"", by:me?me.name:"", action, target:target||"", note:note||""};
+  auditCache.unshift(ev); auditCache=auditCache.slice(0,300);
+  try{ localStorage.setItem(KEY_AUDIT, JSON.stringify(auditCache)); }catch(e){}
+  queuePush({action:"logEvent", event:ev});
+}
 function logAdd(r, action, note){
   const me=currentUser();
   (r.log=r.log||[]).push({ts:new Date().toISOString(), action, by:me?me.name:"", user:me?me.username:"", note:note||""});
+  audit(action, `${r.plate||""} (${r.uid})`, note);
 }
 function fmtTs(ts){
   const d=new Date(ts); if(isNaN(d)) return ts;
@@ -891,12 +909,31 @@ function showModal(opts){
   });
 }
 function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
-function fmtDate(d){
-  if(!d) return "–";
-  const [y,m,dd]=d.split("-");
-  const mo=["ມັງກອນ","ກຸມພາ","ມີນາ","ເມສາ","ພຶດສະພາ","ມິຖຸນາ","ກໍລະກົດ","ສິງຫາ","ກັນຍາ","ຕຸລາ","ພະຈິກ","ທັນວາ"][+m-1];
-  return `${+dd} ${mo} ${y}`;
+/* dates: stored as ISO (YYYY-MM-DD), always DISPLAYED as DD/MM/YYYY on every device */
+function isoToDmy(iso){
+  if(!iso) return "";
+  const p=String(iso).split("-");
+  return p.length===3 ? `${p[2]}/${p[1]}/${p[0]}` : String(iso);
 }
+function dmyToIso(s){
+  const m=String(s).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if(!m) return "";
+  const d=+m[1], mo=+m[2], y=+m[3];
+  const dt=new Date(y, mo-1, d);
+  if(dt.getFullYear()!==y || dt.getMonth()!==mo-1 || dt.getDate()!==d) return "";
+  return `${m[3]}-${m[2]}-${m[1]}`;
+}
+function maskDmy(input, onIso){
+  input.addEventListener("input",()=>{
+    const d=input.value.replace(/[^0-9]/g,"").slice(0,8);
+    let out=d;
+    if(d.length>4) out=d.slice(0,2)+"/"+d.slice(2,4)+"/"+d.slice(4);
+    else if(d.length>2) out=d.slice(0,2)+"/"+d.slice(2);
+    input.value=out;
+    if(onIso) onIso(out.length===10 ? dmyToIso(out) : "");
+  });
+}
+function fmtDate(d){ return isoToDmy(d) || "–"; }
 
 /* ================= login (SUGAR DISPATCH) ================= */
 const HERO_IMG = "hero.jpg";
@@ -951,7 +988,8 @@ function renderLogin(){
     const u=users.find(x=>(x.username||"").toLowerCase()===uname);
     if(!u || u.password!==pass){toast("⚠ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"); return}
     if(u.role==="admin"){
-      view={name:"admin"}; render();
+      setSession(u, remember);
+      view={name:"admin", atab:"users"}; render();
       toast(`✓ ยินดีต้อนรับ ${u.name}`);
       return;
     }
@@ -992,7 +1030,54 @@ function renderAdminLogin(){
 }
 
 let adminEditId = null;
+
+function adminRecordsHTML(){
+  const q=(view.aq||"").toLowerCase();
+  const list=records
+    .filter(r=>!q || (r.plate+(r.customer||"")+(r.recordedBy?r.recordedBy.username:"")).toLowerCase().includes(q))
+    .sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);
+  return `
+    <div class="sec">
+      <h3 style="color:#1F3A68"><span class="n" style="background:#1F3A68">🗂</span> ข้อมูลบันทึกทั้งหมด (${records.length})</h3>
+      <div class="field">
+        <input id="aq" placeholder="ค้นหา ทะเบียน / ลูกค้า / ผู้บันทึก" value="${esc(view.aq||"")}">
+      </div>
+      ${list.length===0?`<div class="empty" style="padding:20px">ไม่พบข้อมูล</div>`:""}
+      ${list.map(r=>`
+        <div class="user" data-uid="${r.uid}">
+          <div style="flex:1;min-width:0">
+            <div class="nm"><span class="mono">${esc(r.plate)}</span>
+              <span class="pill ${STATUS[r.status][1]}" style="margin-left:6px">${STATUS[r.status][0]}</span></div>
+            <div class="pin">${fmtDate(r.date)} · ${esc(r.customer||"–")} · ${r.tons||0} TON · ✍️${r.recordedBy?esc(r.recordedBy.username):"–"}</div>
+          </div>
+          <button class="del rview" aria-label="ดู" style="color:var(--info)">👁</button>
+          <button class="del redit" aria-label="แก้ไข" style="color:var(--green)">✏</button>
+          <button class="del rdel" aria-label="ลบ">🗑</button>
+        </div>`).join("")}
+    </div>`;
+}
+
+function adminLogHTML(){
+  const fromRecords = records.flatMap(r=>(r.log||[]).map(e=>({...e, target:r.plate})));
+  const adminEvents = auditCache.filter(e=>["admin_edited","admin_deleted","user_added","user_edited","user_deleted","admin_pass"].includes(e.action));
+  const entries=[...fromRecords, ...adminEvents]
+    .sort((a,b)=>String(b.ts).localeCompare(String(a.ts)))
+    .slice(0,120);
+  return `
+    <div class="sec">
+      <h3 style="color:#1F3A68"><span class="n" style="background:#1F3A68">🕓</span> Log — ใครทำอะไร (${entries.length} รายการล่าสุด)</h3>
+      ${entries.length===0?`<div class="empty" style="padding:20px">ยังไม่มี log</div>`:""}
+      ${entries.map(e=>`
+        <div class="kv">
+          <span class="k"><span class="mono">${fmtTs(e.ts)}</span> · ${ACTION_LABELS[e.action]||esc(e.action)}${e.target?` — <span class="mono">${esc(e.target)}</span>`:""}${e.note?`<br><span style="color:var(--bad)">“${esc(e.note)}”</span>`:""}</span>
+          <span class="v">${esc(e.by||e.user||"–")}</span>
+        </div>`).join("")}
+      <div style="font-size:11px;color:var(--ink-3);margin-top:10px">☁ log ฉบับเต็มถูกบันทึกลงชีต AuditLog ใน Google Sheets</div>
+    </div>`;
+}
+
 function renderAdmin(){
+  const atab = view.atab||"users";
   const eu = adminEditId ? users.find(u=>u.id===adminEditId) : null;
   app.innerHTML = `
     <div class="appbar" style="background:#1F3A68">
@@ -1006,6 +1091,9 @@ function renderAdmin(){
       </div>
     </div>
     <div class="scroll">
+      ${atab==="records"?adminRecordsHTML():""}
+      ${atab==="log"?adminLogHTML():""}
+      ${atab!=="users"?"":`
       <div class="sec">
         <h3 style="color:#1F3A68"><span class="n" style="background:#1F3A68">👥</span> รายชื่อผู้ใช้</h3>
         ${users.map(u=>`
@@ -1055,11 +1143,19 @@ function renderAdmin(){
           <input id="newapin" maxlength="12" placeholder="รหัสผ่านใหม่" class="mono">
         </div>
         <button class="loginbtn" id="apinsave" style="background:#C9992E">บันทึกรหัสผ่านใหม่</button>
-      </div>
+      </div>`}
       <div style="height:8px"></div>
     </div>
+    <div class="tabbar">
+      <button class="${atab==="users"?"on":""}" data-atab="users"><span class="ic">👥</span><span>ผู้ใช้</span></button>
+      <button class="${atab==="records"?"on":""}" data-atab="records"><span class="ic">🗂</span><span>ข้อมูลบันทึก</span></button>
+      <button class="${atab==="log"?"on":""}" data-atab="log"><span class="ic">🕓</span><span>Log</span></button>
+    </div>
   `;
-  app.querySelector("#adback").onclick=()=>{adminEditId=null; view={name:"login"}; render()};
+  app.querySelector("#adback").onclick=()=>{adminEditId=null; setSession(null); view={name:"login"}; render()};
+  app.querySelectorAll(".tabbar button").forEach(b=>b.onclick=()=>{
+    view.atab=b.dataset.atab; renderAdmin();
+  });
   app.querySelectorAll(".user .del:not(.uedit)").forEach(b=>b.onclick=async()=>{
     const id=+b.closest(".user").dataset.id;
     const u=users.find(x=>x.id===id);
@@ -1068,6 +1164,7 @@ function renderAdmin(){
       confirmText:"ลบ", danger:true, cancelText:"ยกเลิก",
     });
     if(!ok) return;
+    audit("user_deleted", "@"+(u?u.username:id));
     users = users.filter(x=>x.id!==id);
     if(session && session.userId===id) setSession(null);
     if(adminEditId===id) adminEditId=null;
@@ -1081,7 +1178,38 @@ function renderAdmin(){
   });
   const nc=app.querySelector("#nucancel");
   if(nc) nc.onclick=()=>{adminEditId=null; renderAdmin()};
-  app.querySelector("#apisave").onclick=async()=>{
+
+  /* records tab handlers */
+  const aq=app.querySelector("#aq");
+  if(aq) aq.addEventListener("input",e=>{
+    view.aq=e.target.value; renderAdmin();
+    const i=app.querySelector("#aq"); if(i){i.focus(); i.setSelectionRange(i.value.length,i.value.length)}
+  });
+  app.querySelectorAll(".rview").forEach(b=>b.onclick=()=>{
+    view={name:"detail", uid:b.closest(".user").dataset.uid, atab:"records"}; render();
+  });
+  app.querySelectorAll(".redit").forEach(b=>b.onclick=()=>{
+    const r=records.find(x=>x.uid===b.closest(".user").dataset.uid);
+    if(!r) return;
+    draft=JSON.parse(JSON.stringify(r)); editId=r.uid;
+    view={name:"wizard"}; step=0; render();
+  });
+  app.querySelectorAll(".rdel").forEach(b=>b.onclick=async()=>{
+    const uid=b.closest(".user").dataset.uid;
+    const r=records.find(x=>x.uid===uid);
+    const ok=await showModal({
+      title:"ลบข้อมูลบันทึก",
+      message:`ลบใบบันทึก ${r?r.plate:""} (${r?esc(r.customer||""):""}) ถาวร — ลบออกจาก Google Sheets ด้วย`,
+      confirmText:"ลบถาวร", danger:true, cancelText:"ยกเลิก",
+    });
+    if(!ok) return;
+    audit("admin_deleted", `${r?r.plate:""} (${uid})`);
+    records=records.filter(x=>x.uid!==uid);
+    save(); queuePush({action:"deleteRecord", uid});
+    renderAdmin(); toast("🗑 ลบข้อมูลแล้ว");
+  });
+  const apisaveBtn=app.querySelector("#apisave");
+  if(apisaveBtn) apisaveBtn.onclick=async()=>{
     const url=app.querySelector("#apiurl").value.trim();
     try{ localStorage.setItem(KEY_API,url); }catch(e){}
     if(!url){toast("ล้างการเชื่อมต่อแล้ว — ใช้โหมด Offline"); renderAdmin(); return}
@@ -1095,7 +1223,8 @@ function renderAdmin(){
       } else toast("⚠ เชื่อมต่อได้แต่ข้อมูลไม่ถูกรูปแบบ — ตรวจ Code.gs");
     }catch(e){ toast("⚠ เชื่อมต่อไม่ได้ — ตรวจ URL และการ Deploy (Anyone)"); }
   };
-  app.querySelector("#nuadd").onclick=()=>{
+  const nuaddBtn=app.querySelector("#nuadd");
+  if(nuaddBtn) nuaddBtn.onclick=()=>{
     const name=app.querySelector("#nuname").value.trim();
     const username=app.querySelector("#nuuser").value.trim();
     const role=app.querySelector("#nurole").value;
@@ -1108,18 +1237,22 @@ function renderAdmin(){
       const u=users.find(x=>x.id===adminEditId);
       if(u){ u.name=name; u.username=username; u.password=password; u.role=role; }
       adminEditId=null;
+      audit("user_edited", "@"+username);
       saveUsers(); queuePush({action:"saveUsers", users});
       renderAdmin(); toast("✓ แก้ไขผู้ใช้แล้ว");
     } else {
       users.push({id:users.reduce((m,u)=>Math.max(m,u.id),0)+1, name, username, password, role});
+      audit("user_added", "@"+username);
       saveUsers(); queuePush({action:"saveUsers", users});
       renderAdmin(); toast("✓ เพิ่มผู้ใช้แล้ว");
     }
   };
-  app.querySelector("#apinsave").onclick=()=>{
+  const apinBtn=app.querySelector("#apinsave");
+  if(apinBtn) apinBtn.onclick=()=>{
     const p=app.querySelector("#newapin").value.trim();
     if(p.length<4){toast("⚠ รหัสผ่านอย่างน้อย 4 ตัวอักษร"); return}
     try{ localStorage.setItem(KEY_ADMIN,p); }catch(e){}
+    audit("admin_pass","");
     app.querySelector("#newapin").value="";
     toast("✓ เปลี่ยนรหัสผ่านผู้ดูแลแล้ว");
   };
@@ -1266,10 +1399,10 @@ function renderHomeStaff(me){
                   <option value="date_asc" ${f.sort==="date_asc"?"selected":""}>ວັນທີ ເກົ່າ → ໃໝ່</option>
                   <option value="tons_desc" ${f.sort==="tons_desc"?"selected":""}>TON ຫຼາຍ → ໜ້ອຍ</option>
                 </select></div>
-              <div class="field"><label>ຈາກວັນທີ</label>
-                <input type="date" data-f="from" value="${esc(f.from)}"></div>
-              <div class="field"><label>ຮອດວັນທີ</label>
-                <input type="date" data-f="to" value="${esc(f.to)}"></div>
+              <div class="field"><label>ຈາກວັນທີ (DD/MM/YYYY)</label>
+                <input data-df="from" inputmode="numeric" maxlength="10" class="mono" placeholder="DD/MM/YYYY" value="${esc(isoToDmy(f.from))}"></div>
+              <div class="field"><label>ຮອດວັນທີ (DD/MM/YYYY)</label>
+                <input data-df="to" inputmode="numeric" maxlength="10" class="mono" placeholder="DD/MM/YYYY" value="${esc(isoToDmy(f.to))}"></div>
               <div class="field"><label>ຊະນິດນ້ຳຕານ</label>
                 <select data-f="sugar">${selOpts(uniq("sugarType"),f.sugar)}</select></div>
               <div class="field"><label>ປະເພດລົດ</label>
@@ -1318,6 +1451,10 @@ function renderHomeStaff(me){
   app.querySelectorAll("[data-f]").forEach(el=>el.onchange=()=>{
     view.f[el.dataset.f]=el.value; view.tab="reports"; renderHomeStaff(me);
   });
+  app.querySelectorAll("[data-df]").forEach(inp=>maskDmy(inp, iso=>{
+    const k=inp.dataset.df;
+    if(inp.value==="" || iso){ view.f[k]=iso||""; view.tab="reports"; renderHomeStaff(me); }
+  }));
   const fc=app.querySelector("#fclear");
   if(fc) fc.onclick=()=>{
     view.f={status:"all",from:"",to:"",sugar:"all",truck:"all",customer:"all",transport:"all",sort:view.f.sort};
@@ -1524,7 +1661,7 @@ function startDraft(){
     timeStart:"", timeEnd:"", prodYear:"",
     sugarType:"", pack:"", tons:"", bay:"",
     lots:[{no:"",bags:"",clean:true,firm:true}],
-    tarp:"", seal:"", note:"", otherNote:"", driverName:"",
+    tarp:"", seal:"", note:"", otherNote:"", driverName:"", logisticsName:"",
     sigs:{}, sigImgs:{}, checks:{}
   };
 }
@@ -1552,6 +1689,11 @@ function wizardShell(inner, footer){
   `;
   app.querySelector("#wback").onclick=()=>{
     if(step===0){
+      const meW=currentUser();
+      if(meW && meW.role==="admin"){
+        clearDraftLocal(); draft=null; editId=null;
+        view={name:"admin", atab:"records"}; render(); return;
+      }
       saveStep();
       view={name:"home",filter:"all",q:""}; render();
       toast("💾 ບັນທຶກຮ່າງໄວ້ແລ້ວ");
@@ -1584,7 +1726,9 @@ function bindFoot(last){
     });
     if(!ok) return;
     clearDraftLocal(); draft=null; editId=null;
-    view={name:"home",filter:"all",q:""}; render();
+    const meCancel=currentUser();
+    view = (meCancel&&meCancel.role==="admin") ? {name:"admin", atab:"records"} : {name:"home",filter:"all",q:""};
+    render();
   };
   if(!last){
     app.querySelector("#next").onclick=()=>{
@@ -1597,6 +1741,7 @@ function bindFoot(last){
       saveStep();
       if(!draft.tarp){toast("⚠ ກະລຸນາເລືອກສະຖານະການປົກຜ້າໃບ / Seal"); return}
       if(!String(draft.driverName||"").trim()){toast("⚠ ກະລຸນາພິມຊື່ພະນັກງານຂັບລົດ"); return}
+      if(!String(draft.logisticsName||"").trim()){toast("⚠ ກະລຸນາພິມຊື່ຫົວໜ້າກະໂລຈິສຕິກ"); return}
       view={name:"confirm"}; render();
     };
   }
@@ -1604,7 +1749,7 @@ function bindFoot(last){
 
 function validateStep(){
   if(step===0){
-    if(!draft.date){toast("⚠ ກະລຸນາເລືອກວັນທີ"); return false}
+    if(!draft.date){toast("⚠ ກະລຸນາປ້ອນວັນທີໃຫ້ຄົບ (DD/MM/YYYY)"); return false}
     if(!String(draft.plate).trim()){toast("⚠ ກະລຸນາປ້ອນທະບຽນລົດ"); return false}
     if(!String(draft.transport).trim()){toast("⚠ ກະລຸນາປ້ອນບໍລິສັດຂົນສົ່ງ"); return false}
     if(!String(draft.customer).trim()){toast("⚠ ກະລຸນາປ້ອນລູກຄ້າປາຍທາງ"); return false}
@@ -1652,8 +1797,9 @@ function renderStep0(){
     <div class="sec">
       <h3><span class="n">🚚</span> ວັນທີ ແລະ ເວລາ</h3>
       <div class="grid2">
-        <div class="field"><label>ວັນທີ <span class="req">*</span></label>
-          <input type="date" data-k="date" value="${esc(draft.date)}"></div>
+        <div class="field"><label>ວັນທີ (DD/MM/YYYY) <span class="req">*</span></label>
+          <input id="dmydate" inputmode="numeric" maxlength="10" class="mono"
+            placeholder="DD/MM/YYYY" value="${esc(isoToDmy(draft.date))}"></div>
         <div class="field"><label>ປີການຜະລິດ</label>
           <input data-k="prodYear" class="mono" placeholder="....../......" value="${esc(draft.prodYear)}"></div>
         <div class="field"><label>ເວລາເລີ່ມຂື້ນ</label>
@@ -1682,6 +1828,7 @@ function renderStep0(){
     </div>
   `, footBtns(false));
   bindFoot(false);
+  maskDmy(app.querySelector("#dmydate"), iso=>{ draft.date=iso; saveDraftLocal(); });
   const py=app.querySelector("[data-k=prodYear]");
   py.addEventListener("input",()=>{
     const d=py.value.replace(/[^0-9]/g,"").slice(0,8);
@@ -1888,8 +2035,10 @@ function renderStep3(){
       <h3><span class="n">✍️</span> ຜູ້ລົງນາມ (ຜູ້ບັນທຶກ)</h3>
       <div class="field"><label>ພະນັກງານຂັບລົດ (ພິມຊື່) <span class="req">*</span></label>
         <input data-k="driverName" placeholder="ຊື່ ແລະ ນາມສະກຸນ ພະນັກງານຂັບລົດ" value="${esc(draft.driverName||"")}"></div>
+      <div class="field"><label>ຫົວໜ້າກະໂລຈິສຕິກ (ພິມຊື່) <span class="req">*</span></label>
+        <input data-k="logisticsName" placeholder="ຊື່ ແລະ ນາມສະກຸນ ຫົວໜ້າກະໂລຈິສຕິກ" value="${esc(draft.logisticsName||"")}"></div>
       <div class="field"><label>ພະນັກງານ QC / ຜູ້ບັນທຶກ · ລ໋ອກຕາມບັນຊີຜູ້ໃຊ້</label>
-        <input readonly value="${esc(currentUser()?currentUser().name:"")}"
+        <input readonly value="${esc(draft.recordedBy ? draft.recordedBy.name : (currentUser()?currentUser().name:""))}"
           style="background:var(--green-soft);font-weight:700;color:var(--green)"></div>
       <div style="font-size:11.5px;color:var(--ink-3);margin-top:4px">
         ℹ ຫົວໜ້າກະໂລຈິສຕິກ ແລະ ຫົວໜ້າພະແນກ ຈະອະນຸມັດຜ່ານບັນຊີ «ຜູ້ອະນຸມັດ»
@@ -1944,6 +2093,19 @@ function renderStep3(){
 
 /* ================= confirm (summary before save) ================= */
 function commitDraft(){
+  const meC=currentUser();
+  if(meC && meC.role==="admin" && editId){
+    // admin backend edit: keep status/workflow untouched, just log the change
+    logAdd(draft, "admin_edited");
+    const i=records.findIndex(r=>r.uid===editId);
+    if(i>=0) records[i]=draft; else records.unshift(draft);
+    save();
+    queuePush({action:"saveRecord", record:slimRecord(draft)});
+    clearDraftLocal(); draft=null; editId=null;
+    view={name:"admin", atab:"records"}; render();
+    toast("✓ แก้ไขข้อมูลแล้ว (Admin)");
+    return;
+  }
   draft.sigs.driver=true;
   draft.sigs.qc=true;
   const resub = draft.status==="returned";
@@ -2027,6 +2189,7 @@ function renderConfirm(){
         <div class="kv"><span class="k">Seal No.</span><span class="v mono">${esc(d.seal)||"–"}</span></div>
         ${d.note?`<div class="kv"><span class="k">ໝາຍເຫດ</span><span class="v">${esc(d.note)}</span></div>`:""}
         <div class="kv"><span class="k">ພະນັກງານຂັບລົດ</span><span class="v">${esc(d.driverName)}</span></div>
+        <div class="kv"><span class="k">ຫົວໜ້າກະໂລຈິສຕິກ</span><span class="v">${esc(d.logisticsName||"–")}</span></div>
         <div class="kv"><span class="k">ຜູ້ບັນທຶກ (QC)</span><span class="v">${esc(d.recordedBy?d.recordedBy.name:"")}</span></div>
         <div class="kv"><span class="k">ຂື້ນສຳເລັດ</span><span class="v mono">${esc(d.timeEnd)||"–"}</span></div>
       </div>
@@ -2113,6 +2276,8 @@ function renderDetail(){
             v = r.driverName
               ? `<span class="badge-ok">✓</span> ${esc(r.driverName)}`
               : (r.sigs&&r.sigs.driver?'<span class="badge-ok">✓ ເຊັນແລ້ວ</span>':'<span class="badge-bad">ຍັງບໍ່ລະບຸ</span>');
+          } else if(s.id==="logis" && r.logisticsName){
+            v = `${(r.sigs&&r.sigs.logis)?'<span class="badge-ok">✓</span> ':''}${esc(r.logisticsName)}`;
           } else if(s.id==="qc"){
             v = r.recordedBy
               ? `<span class="badge-ok">✓</span> ${esc(r.recordedBy.name)}`
@@ -2223,6 +2388,8 @@ function renderDetail(){
 function render(){
   const authViews=["login","adminlogin","admin"];
   if(!currentUser() && !authViews.includes(view.name)) view={name:"login"};
+  const cu=currentUser();
+  if(cu && cu.role==="admin" && view.name==="home") view={name:"admin", atab:view.atab||"users"};
   if(view.name==="login") renderLogin();
   else if(view.name==="adminlogin") renderAdminLogin();
   else if(view.name==="admin") renderAdmin();

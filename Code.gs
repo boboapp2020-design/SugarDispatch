@@ -51,7 +51,31 @@ function doPost(e) {
   if (body.action === "saveRecord") saveRecord(body.record);
   else if (body.action === "saveUsers") saveUsers(body.users);
   else if (body.action === "savePhoto") savePhoto(body);
+  else if (body.action === "deleteRecord") deleteRecord(body.uid);
+  else if (body.action === "logEvent") logEvent(body.event);
   return jsonOut({ ok: true });
+}
+
+/* ---------- delete record (แอดมินลบข้อมูล) ---------- */
+function deleteRecord(uid) {
+  var sh = getSheet(RECORDS_SHEET, REC_HEADERS);
+  var data = sh.getDataRange().getValues();
+  for (var i = data.length - 1; i >= 1; i--) {
+    if (String(data[i][0]) === String(uid)) sh.deleteRow(i + 1);
+  }
+  var ps = getSheet(PHOTOS_SHEET, ["uid", "index", "url", "fileId", "updatedAt"]);
+  var pd = ps.getDataRange().getValues();
+  for (var j = pd.length - 1; j >= 1; j--) {
+    if (String(pd[j][0]) === String(uid)) ps.deleteRow(j + 1);
+  }
+}
+
+/* ---------- audit log (ใครทำอะไร เมื่อไหร่) ---------- */
+var AUDIT_SHEET = "AuditLog";
+function logEvent(ev) {
+  if (!ev) return;
+  var sh = getSheet(AUDIT_SHEET, ["ts", "user", "name", "action", "target", "note"]);
+  sh.appendRow([ev.ts, ev.user || "", ev.by || "", ev.action || "", ev.target || "", ev.note || ""]);
 }
 
 /* ---------- Photos (เก็บรูปใน Google Drive โฟลเดอร์ SugarDeliveryPhotos) ---------- */
