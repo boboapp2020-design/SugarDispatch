@@ -235,6 +235,25 @@
     display:flex;align-items:center;gap:8px;
     font-size:13px;font-weight:700;color:var(--bad);margin:4px 2px 8px;
   }
+  .tabbar{
+    position:absolute;left:0;right:0;bottom:0;z-index:15;display:flex;gap:6px;
+    background:color-mix(in srgb,var(--paper) 90%,transparent);
+    backdrop-filter:blur(10px);
+    border-top:1px solid var(--line);
+    padding:7px 12px calc(9px + env(safe-area-inset-bottom));
+  }
+  .tabbar button{
+    flex:1;background:none;border:none;cursor:pointer;font:inherit;
+    font-size:11.5px;font-weight:700;color:var(--ink-3);
+    padding:7px 4px;border-radius:14px;
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+  }
+  .tabbar button .ic{font-size:20px;line-height:1}
+  .tabbar button.on{color:var(--green);background:var(--green-soft)}
+  .tbadge{
+    background:var(--bad);color:#fff;font-size:10px;font-weight:700;
+    border-radius:999px;padding:1px 6px;
+  }
   .retnote{
     background:var(--bad-soft);border:1px solid var(--bad);border-radius:14px;
     padding:12px 14px;margin-bottom:12px;font-size:13px;color:var(--bad);font-weight:600;
@@ -455,6 +474,30 @@
   .badge-ok{display:inline-block;background:var(--ok-soft);color:var(--ok);font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px}
   .badge-bad{display:inline-block;background:var(--bad-soft);color:var(--bad);font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px}
 
+  /* ---------- modal ---------- */
+  .modal{
+    position:absolute;inset:0;z-index:100;
+    background:rgba(10,18,32,.55);backdrop-filter:blur(2px);
+    display:flex;align-items:center;justify-content:center;padding:24px;
+  }
+  .modal[hidden]{display:none}
+  .mbox{
+    background:var(--card);border:1px solid var(--line);border-radius:20px;
+    padding:20px;width:100%;max-width:340px;
+    box-shadow:0 24px 60px rgba(0,0,0,.35);
+  }
+  .mtitle{font-size:15.5px;font-weight:700;margin-bottom:6px}
+  .mmsg{font-size:13px;color:var(--ink-2);margin-bottom:12px;line-height:1.6}
+  .mnote{
+    width:100%;font:inherit;font-size:14px;color:var(--ink);
+    background:var(--paper);border:1px solid var(--line);border-radius:12px;
+    padding:10px 12px;outline:none;margin-bottom:14px;resize:vertical;
+  }
+  .mnote:focus{border-color:var(--focus)}
+  .mbtns{display:flex;gap:10px}
+  .mbtns .btn{flex:1;padding:12px 10px}
+  .btn.danger{background:var(--bad);border-color:var(--bad);color:#fff}
+
   .toast{
     position:absolute;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);
     background:var(--green-deep);color:#fff;font-size:13px;font-weight:600;
@@ -571,13 +614,24 @@
 
 <div class="phone">
   <div id="app" style="display:flex;flex-direction:column;flex:1;min-height:0"></div>
+  <div class="modal" id="modal" hidden>
+    <div class="mbox">
+      <div class="mtitle"></div>
+      <div class="mmsg"></div>
+      <textarea class="mnote" rows="3"></textarea>
+      <div class="mbtns">
+        <button class="btn" id="mcancel">ຍົກເລີກ</button>
+        <button class="btn primary" id="mok">ຢືນຢັນ</button>
+      </div>
+    </div>
+  </div>
   <div class="toast" id="toast"></div>
 </div>
 
 <script>
 /* ================= constants ================= */
 const TRUCK_TYPES = ["ລົດເທວເລີ້ (Trailer)","ລົດແທັງ (Tank)","ລົດ 6 ລໍ້","ລົດບັນທຸກ 10 ລໍ້/ພ້ວງ","ລົດຕູ້ຄອນເທັນເນີ້ (Container)","ອື່ນໆ"];
-const SUGAR_TYPES = ["ນ້ຳຕານຊາຍຂາວ","ນ້ຳຕານດິບ VHP","ນ້ຳຕານ Organic","ນ້ຳຕານຊາຍຂາວບໍລິສຸດ"];
+const SUGAR_TYPES = ["ນ້ຳຕານຊາຍຂາວ","ນ້ຳຕານດິບ VHP","ນ້ຳຕານ Organic"];
 const PACK_SIZES = ["1,000 kg","50 kg","25 kg","1 kg","0.5 kg"];
 const BAYS = ["WH 1","WH 2","WH 3","WH 4"];
 function packKg(p){
@@ -806,6 +860,30 @@ function toast(msg){
   t.textContent=msg; t.classList.add("show");
   clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),2200);
 }
+
+// centered in-app modal — replaces browser prompt()/confirm()
+// resolves: null on cancel; true (or the typed note when input:true) on confirm
+function showModal(opts){
+  return new Promise(res=>{
+    const m=document.getElementById("modal");
+    m.querySelector(".mtitle").textContent=opts.title||"";
+    m.querySelector(".mmsg").textContent=opts.message||"";
+    const ta=m.querySelector(".mnote");
+    ta.hidden=!opts.input; ta.value=""; ta.placeholder=opts.placeholder||"";
+    const ok=m.querySelector("#mok"), ca=m.querySelector("#mcancel");
+    ok.textContent=opts.confirmText||"ຢືນຢັນ";
+    ca.textContent=opts.cancelText||"ຍົກເລີກ";
+    ok.className="btn "+(opts.danger?"danger":"primary");
+    m.hidden=false;
+    if(opts.input) setTimeout(()=>ta.focus(),60);
+    const done=v=>{m.hidden=true; ok.onclick=null; ca.onclick=null; res(v)};
+    ok.onclick=()=>{
+      if(opts.input && !ta.value.trim()){toast("⚠ ກະລຸນາລະບຸເຫດຜົນ"); return}
+      done(opts.input ? ta.value.trim() : true);
+    };
+    ca.onclick=()=>done(null);
+  });
+}
 function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 function fmtDate(d){
   if(!d) return "–";
@@ -976,10 +1054,14 @@ function renderAdmin(){
     </div>
   `;
   app.querySelector("#adback").onclick=()=>{adminEditId=null; view={name:"login"}; render()};
-  app.querySelectorAll(".user .del:not(.uedit)").forEach(b=>b.onclick=()=>{
+  app.querySelectorAll(".user .del:not(.uedit)").forEach(b=>b.onclick=async()=>{
     const id=+b.closest(".user").dataset.id;
     const u=users.find(x=>x.id===id);
-    if(!confirm(`ลบผู้ใช้ @${u?u.username:id} ใช่ไหม?`)) return;
+    const ok=await showModal({
+      title:"ลบผู้ใช้", message:`ลบ ${u?u.name:""} (@${u?u.username:id}) ใช่ไหม?`,
+      confirmText:"ลบ", danger:true, cancelText:"ยกเลิก",
+    });
+    if(!ok) return;
     users = users.filter(x=>x.id!==id);
     if(session && session.userId===id) setSession(null);
     if(adminEditId===id) adminEditId=null;
@@ -1136,6 +1218,9 @@ function renderHome(){
   const tasks = myTasks(meRole);
 
   const me = currentUser();
+  const isStaff = me && (me.role==="checker"||me.role==="approver");
+  const tab = isStaff ? (view.tab||"list") : "list";
+  const hideList = isStaff && tab==="dash";
   app.innerHTML = `
     <div class="appbar">
       <div class="row">
@@ -1161,7 +1246,7 @@ function renderHome(){
         <button id="installbtn">ຕິດຕັ້ງ</button>
         <button class="x" id="installx" aria-label="ປິດ">✕</button>
       </div>`:""}
-      ${me && (me.role==="checker"||me.role==="approver") ? dashHTML(records) : ""}
+      ${isStaff && tab==="dash" ? dashHTML(records) : ""}
       ${(()=>{
         const ld=loadDraftLocal();
         if(!(me&&me.role==="recorder"&&ld&&ld.user===me.username)) return "";
@@ -1177,7 +1262,7 @@ function renderHome(){
           </div>
         </div>`;
       })()}
-      ${tasks.length?`
+      ${!hideList && tasks.length?`
         <div class="tasklabel">📥 ລໍຖ້າດຳເນີນການ (${tasks.length})</div>
         ${tasks.map(recCardHTML).join("")}
         <div class="daylabel">ລາຍການທັງໝົດ</div>
@@ -1205,12 +1290,26 @@ function renderHome(){
           : "📴 ໂໝດ Offline — ຍັງບໍ່ໄດ້ເຊື່ອມ Google Sheets (ຕັ້ງຄ່າໃນໜ້າ Admin)"}
       </div>
     </div>
+    ${isStaff?`
+      <div class="tabbar">
+        <button class="${tab==="list"?"on":""}" data-tab="list">
+          <span class="ic">📥</span>
+          <span>ລາຍການ ${tasks.length?`<span class="tbadge">${tasks.length}</span>`:""}</span>
+        </button>
+        <button class="${tab==="dash"?"on":""}" data-tab="dash">
+          <span class="ic">📊</span>
+          <span>ສະຫຼຸບລາຍງານ</span>
+        </button>
+      </div>`:""}
     ${me&&me.role==="recorder" ? `<button class="fab" id="fab"><span class="plus">＋</span> ບັນທຶກໃໝ່</button>` : ""}
   `;
+  app.querySelectorAll(".tabbar button").forEach(b=>b.onclick=()=>{
+    view.tab=b.dataset.tab; renderHome();
+  });
   const q=app.querySelector("#q");
-  q.addEventListener("input",e=>{
+  if(q) q.addEventListener("input",e=>{
     view.q=e.target.value; renderHome();
-    const i=app.querySelector("#q"); i.focus(); i.setSelectionRange(i.value.length,i.value.length);
+    const i=app.querySelector("#q"); if(i){i.focus(); i.setSelectionRange(i.value.length,i.value.length)}
   });
   app.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{view.filter=c.dataset.f; renderHome()});
   app.querySelectorAll(".rec").forEach(el=>{
@@ -1229,10 +1328,15 @@ function renderHome(){
     rd.onkeydown=e=>{if(e.key==="Enter")open()};
   }
   const fab=app.querySelector("#fab");
-  if(fab) fab.onclick=()=>{
+  if(fab) fab.onclick=async()=>{
     const ld=loadDraftLocal();
     if(ld && me && ld.user===me.username){
-      if(!confirm("ມີຮ່າງຄ້າງຢູ່ — ເລີ່ມບັນທຶກໃໝ່ ແລະ ລຶບຮ່າງເກົ່າຖິ້ມບໍ່?")){
+      const ok=await showModal({
+        title:"ມີຮ່າງຄ້າງຢູ່",
+        message:`ຮ່າງ ${ld.draft.plate||"(ຍັງບໍ່ມີທະບຽນ)"} ຍັງຂຽນບໍ່ສຳເລັດ — ເລີ່ມບັນທຶກໃໝ່ ຈະລຶບຮ່າງເກົ່າຖິ້ມ`,
+        confirmText:"ເລີ່ມໃໝ່", danger:true, cancelText:"ຂຽນຮ່າງເກົ່າຕໍ່",
+      });
+      if(!ok){
         draft=ld.draft; step=ld.step||0; editId=ld.editId||null;
         view={name:"wizard"}; render(); return;
       }
@@ -1330,8 +1434,13 @@ function footBtns(last){
 function bindFoot(last){
   const p=app.querySelector("#prev"), c=app.querySelector("#cancel");
   if(p)p.onclick=()=>{saveStep(); step--; render()};
-  if(c)c.onclick=()=>{
-    if(!confirm("ຍົກເລີກ ແລະ ລຶບຮ່າງນີ້ຖິ້ມບໍ່?")) return;
+  if(c)c.onclick=async()=>{
+    const ok=await showModal({
+      title:"ຍົກເລີກການບັນທຶກ",
+      message:"ຮ່າງນີ້ຈະຖືກລຶບຖິ້ມ ແລະ ບໍ່ສາມາດກູ້ຄືນໄດ້",
+      confirmText:"ລຶບຮ່າງ", danger:true, cancelText:"ຂຽນຕໍ່",
+    });
+    if(!ok) return;
     clearDraftLocal(); draft=null; editId=null;
     view={name:"home",filter:"all",q:""}; render();
   };
@@ -1906,13 +2015,17 @@ function renderDetail(){
       <button class="btn" id="dhome">‹</button>
       <button class="btn" id="dreturn" style="color:var(--bad);border-color:var(--bad)">✕ ສົ່ງກັບແກ້ໄຂ</button>
       <button class="btn primary" id="dpass">✓ ຜ່ານກວດສອບ</button>`;
-    app.querySelector("#dreturn").onclick=()=>{
-      const note=prompt("ເຫດຜົນທີ່ສົ່ງກັບແກ້ໄຂ (ຈຳເປັນ):");
+    app.querySelector("#dreturn").onclick=async()=>{
+      const note=await showModal({
+        title:"↩ ສົ່ງກັບແກ້ໄຂ",
+        message:`ບັນທຶກນີ້ຈະຖືກສົ່ງກັບໄປຫາ ${r.recordedBy?r.recordedBy.name+" ("+r.recordedBy.username+")":"ຜູ້ບັນທຶກ"}`,
+        input:true, placeholder:"ລະບຸເຫດຜົນທີ່ສົ່ງກັບ...",
+        confirmText:"✓ ຢືນຢັນສົ່ງກັບ", danger:true,
+      });
       if(note===null) return;
-      if(!note.trim()){toast("⚠ ກະລຸນາລະບຸເຫດຜົນ"); return}
-      r.status="returned"; r.returnNote=note.trim();
+      r.status="returned"; r.returnNote=note;
       r.checkedBy={name:me.name, username:me.username};
-      logAdd(r,"returned",note.trim());
+      logAdd(r,"returned",note);
       pushRecordUpdate(r); back(); toast("↩ ສົ່ງກັບໄປຫາ "+(r.recordedBy?r.recordedBy.username:"ຜູ້ບັນທຶກ"));
     };
     app.querySelector("#dpass").onclick=()=>{
@@ -1927,13 +2040,17 @@ function renderDetail(){
       <button class="btn" id="dhome">‹</button>
       <button class="btn" id="dreject" style="color:var(--bad);border-color:var(--bad)">✕ ບໍ່ຜ່ານ</button>
       <button class="btn gold" id="dapprove">✓ ອະນຸມັດ</button>`;
-    app.querySelector("#dreject").onclick=()=>{
-      const note=prompt("ເຫດຜົນທີ່ບໍ່ຜ່ານ (ຈຳເປັນ):");
+    app.querySelector("#dreject").onclick=async()=>{
+      const note=await showModal({
+        title:"✕ ບໍ່ຜ່ານການອະນຸມັດ",
+        message:`ບັນທຶກນີ້ຈະຖືກສົ່ງກັບໄປຫາຜູ້ກວດສອບ ${r.checkedBy?r.checkedBy.name+" ("+r.checkedBy.username+")":""}`,
+        input:true, placeholder:"ລະບຸເຫດຜົນທີ່ບໍ່ຜ່ານ...",
+        confirmText:"✓ ຢືນຢັນ", danger:true,
+      });
       if(note===null) return;
-      if(!note.trim()){toast("⚠ ກະລຸນາລະບຸເຫດຜົນ"); return}
-      r.status="rejected"; r.rejectNote=note.trim();
+      r.status="rejected"; r.rejectNote=note;
       r.approvedBy=null;
-      logAdd(r,"rejected",note.trim());
+      logAdd(r,"rejected",note);
       pushRecordUpdate(r); back(); toast("↩ ສົ່ງກັບໄປຫາຜູ້ກວດສອບ "+(r.checkedBy?r.checkedBy.username:""));
     };
     app.querySelector("#dapprove").onclick=()=>{
