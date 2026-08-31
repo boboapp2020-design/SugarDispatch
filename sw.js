@@ -1,9 +1,10 @@
-const CACHE = "sugar-delivery-v20";
+const CACHE = "sugar-delivery-v21";
 const SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./hero.jpg",
+  "./qr.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/apple-touch-icon.png",

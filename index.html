@@ -480,6 +480,49 @@
   .badge-ok{display:inline-block;background:var(--ok-soft);color:var(--ok);font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px}
   .badge-bad{display:inline-block;background:var(--bad-soft);color:var(--bad);font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px}
 
+  /* ---------- hamburger drawer ---------- */
+  .drawer-ov{position:absolute;inset:0;z-index:90;background:rgba(10,18,32,.5)}
+  .drawer-ov[hidden]{display:none}
+  .drawer{
+    position:absolute;top:0;bottom:0;left:0;width:82%;max-width:320px;z-index:95;
+    background:var(--card);display:flex;flex-direction:column;
+    transform:translateX(-105%);transition:transform .25s ease;
+    box-shadow:12px 0 40px rgba(0,0,0,.25);
+  }
+  .drawer.open{transform:none}
+  .dhead{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:calc(18px + env(safe-area-inset-top)) 18px 16px;
+    background:var(--green-deep);color:var(--appbar-ink);flex:none;
+  }
+  .dtitle{font-family:'Archivo',sans-serif;font-weight:800;font-size:16px;letter-spacing:.08em}
+  .dtitle .gold{color:var(--gold)}
+  .dsub{font-size:11px;opacity:.75;margin-top:2px}
+  .dbody{flex:1;overflow-y:auto;padding:16px}
+  .dqr{
+    background:var(--paper);border:1px solid var(--line);border-radius:16px;
+    padding:16px;text-align:center;margin-bottom:12px;
+  }
+  .dqr img{width:180px;height:180px;background:#fff;padding:8px;border-radius:10px;border:1px solid var(--line)}
+  .durl{font-size:10.5px;color:var(--ink-3);margin-top:8px;word-break:break-all}
+  .dbtn{
+    width:100%;font:inherit;font-weight:700;font-size:14px;cursor:pointer;
+    background:var(--green);color:var(--on-brand);border:none;border-radius:12px;
+    padding:12px;margin-bottom:10px;
+  }
+  .dbtn.alt{background:var(--card);color:var(--ink);border:1.5px solid var(--line)}
+  .dmanual{
+    background:var(--paper);border:1px solid var(--line);border-radius:14px;
+    padding:12px 14px;font-size:13px;margin-bottom:10px;
+  }
+  .dmanual summary{font-weight:700;cursor:pointer;color:var(--green)}
+  .dmanual ol{margin:10px 0 4px 18px;display:flex;flex-direction:column;gap:8px;line-height:1.65;font-size:12.5px;color:var(--ink-2)}
+  .dfoot{
+    padding:14px 18px calc(14px + env(safe-area-inset-bottom));
+    border-top:1px solid var(--line);flex:none;
+    font-size:11px;color:var(--ink-3);line-height:1.8;
+  }
+
   /* ---------- modal ---------- */
   .modal{
     position:absolute;inset:0;z-index:100;
@@ -620,6 +663,50 @@
 
 <div class="phone">
   <div id="app" style="display:flex;flex-direction:column;flex:1;min-height:0"></div>
+  <div class="drawer-ov" id="drawerov" hidden></div>
+  <aside class="drawer" id="drawer">
+    <div class="dhead">
+      <div>
+        <div class="dtitle">SUGAR <span class="gold">DISPATCH</span></div>
+        <div class="dsub">ບັນທຶກການສົ່ງມອບນ້ຳຕານ · ນ້ຳຕານມິດລາວ</div>
+      </div>
+      <button class="backbtn" id="drawerclose" aria-label="ປິດເມນູ">✕</button>
+    </div>
+    <div class="dbody">
+      <div class="dqr">
+        <img src="qr.png" alt="QR code ສຳລັບເປີດແອັບ" id="qrimg">
+        <div class="durl mono">boboapp2020-design.github.io/SugarDispatch</div>
+      </div>
+      <button class="dbtn" id="sharelink">🔗 ແຊຣ໌ລິ້ງແອັບ</button>
+      <button class="dbtn alt" id="shareqr">🖼 ແຊຣ໌ QR Code</button>
+      <details class="dmanual">
+        <summary>📖 ຄູ່ມືການນຳໃຊ້ (ຜູ້ບັນທຶກ)</summary>
+        <ol>
+          <li><b>ເຂົ້າສູ່ລະບົບ</b> — ປ້ອນ Username (ເຊັ່ນ QC01) ແລະ ລະຫັດຜ່ານ ແລ້ວກົດ «ເຂົ້າສູ່ລະບົບ»</li>
+          <li>ກົດປຸ່ມ <b>«＋ ບັນທຶກໃໝ່»</b> ຢູ່ມຸມຂວາລຸ່ມຂອງໜ້າຫຼັກ</li>
+          <li><b>ຂັ້ນຕອນ 1</b> — ປ້ອນວັນທີ (DD/MM/YYYY), ທະບຽນລົດ, ບໍລິສັດຂົນສົ່ງ, ລູກຄ້າປາຍທາງ ແລະ ເລືອກປະເພດລົດບັນທຸກ</li>
+          <li><b>ຂັ້ນຕອນ 2</b> — ກວດສະພາບລົດໃຫ້ຄົບທັງ 10 ລາຍການ (ຂຽວ=ຜ່ານ, ແດງ=ບໍ່ຜ່ານ) ແລະ ຖ່າຍຮູບແນບໄດ້</li>
+          <li><b>ຂັ້ນຕອນ 3</b> — ເລືອກຊະນິດນ້ຳຕານ, ຂະໜາດບັນຈຸ, ສາງ (WH) ແລະ ປ້ອນເລກ Lot + ຈຳນວນກະສອບ — ຈຳນວນ TON ຄິດໄລ່ໃຫ້ອັດຕະໂນມັດ</li>
+          <li><b>ຂັ້ນຕອນ 4</b> — ເລືອກການປົກຜ້າໃບ/Seal, ພິມຊື່ພະນັກງານຂັບລົດ ແລະ ຫົວໜ້າກະໂລຈິສຕິກ</li>
+          <li>ກົດ <b>«ສະຫຼຸບຂໍ້ມູນ»</b> ກວດຄືນອີກຄັ້ງ ແລ້ວກົດ <b>«✓ ຢືນຢັນຂໍ້ມູນ»</b> — ໃບບັນທຶກຈະຖືກສົ່ງໄປຫາຜູ້ກວດສອບ</li>
+          <li>ຖ້າໃບບັນທຶກ<b>ຖືກສົ່ງກັບ</b> (ປ້າຍສີແດງ) — ເປີດເບິ່ງເຫດຜົນ, ກົດ «✎ ແກ້ໄຂ» ແລ້ວສົ່ງຄືນ</li>
+          <li>ຂຽນຄ້າງໄວ້ບໍ່ເປັນຫຍັງ — ລະບົບ<b>ບັນທຶກຮ່າງອັດຕະໂນມັດ</b> ກັບມາຂຽນຕໍ່ໄດ້ຈາກບັດສີທອງໃນໜ້າຫຼັກ</li>
+        </ol>
+      </details>
+      <details class="dmanual">
+        <summary>🔑 ປ່ຽນລະຫັດຜ່ານຂອງຂ້ອຍ</summary>
+        <div class="field" style="margin-top:10px"><label>ລະຫັດຜ່ານປັດຈຸບັນ</label>
+          <input type="password" id="pwold" class="mono" autocomplete="current-password"></div>
+        <div class="field"><label>ລະຫັດຜ່ານໃໝ່ (ຢ່າງໜ້ອຍ 4 ຕົວ)</label>
+          <input type="password" id="pwnew" class="mono" autocomplete="new-password"></div>
+        <button class="dbtn" id="pwsave" style="margin-top:6px">💾 ບັນທຶກລະຫັດຜ່ານໃໝ່</button>
+      </details>
+    </div>
+    <div class="dfoot">
+      <div>📱 ເວີຊັນແອັບ 1.0.0 · ML-FM-1610-012 Rev.07</div>
+      <div>👨‍💻 พัฒนาโดย นายสุรศักดิ์ นามวรรณ</div>
+    </div>
+  </aside>
   <div class="modal" id="modal" hidden>
     <div class="mbox">
       <div class="mtitle"></div>
@@ -846,7 +933,7 @@ const ACTION_LABELS = {
   approved:"ອະນຸມັດ", rejected:"ບໍ່ຜ່ານອະນຸມັດ",
   admin_edited:"แก้ไขข้อมูล (Admin)", admin_deleted:"ลบข้อมูล (Admin)",
   user_added:"เพิ่มผู้ใช้", user_edited:"แก้ไขผู้ใช้", user_deleted:"ลบผู้ใช้",
-  admin_pass:"เปลี่ยนรหัสแอดมิน",
+  admin_pass:"เปลี่ยนรหัสแอดมิน", password_changed:"ປ່ຽນລະຫັດຜ່ານ",
 };
 
 /* audit trail — every action queues a logEvent to the AuditLog sheet */
@@ -1361,6 +1448,7 @@ function renderHomeStaff(me){
   app.innerHTML = `
     <div class="appbar">
       <div class="row">
+        <button class="backbtn" id="menubtn" aria-label="ເມນູ">☰</button>
         <div style="flex:1;min-width:0">
           <h1>ບັນທຶກການສົ່ງມອບນ້ຳຕານ</h1>
           <div class="userchip">
@@ -1368,7 +1456,6 @@ function renderHomeStaff(me){
             <span class="rolebadge">${ROLE_NAMES[me.role]}</span>
           </div>
         </div>
-        <span class="formcode">Rev.07</span>
         <button class="backbtn" id="logout" aria-label="ອອກຈາກລະບົບ" title="ອອກຈາກລະບົບ">⏻</button>
       </div>
     </div>
@@ -1441,6 +1528,7 @@ function renderHomeStaff(me){
   app.querySelector("#logout").onclick=()=>{
     setSession(null); view={name:"login"}; render(); toast("ອອກຈາກລະບົບແລ້ວ");
   };
+  app.querySelector("#menubtn").onclick=openDrawer;
   app.querySelectorAll(".rec").forEach(el=>{
     const open=()=>{view={name:"detail",uid:el.dataset.uid}; render()};
     el.onclick=open;
@@ -1503,6 +1591,7 @@ function renderHome(){
   app.innerHTML = `
     <div class="appbar">
       <div class="row">
+        <button class="backbtn" id="menubtn" aria-label="ເມນູ">☰</button>
         <div style="flex:1;min-width:0">
           <h1>ບັນທຶກການສົ່ງມອບນ້ຳຕານ</h1>
           <div class="userchip">
@@ -1510,7 +1599,6 @@ function renderHome(){
             <span class="rolebadge">${me?ROLE_NAMES[me.role]:""}</span>
           </div>
         </div>
-        <span class="formcode">Rev.07</span>
         <button class="backbtn" id="logout" aria-label="ອອກຈາກລະບົບ" title="ອອກຈາກລະບົບ">⏻</button>
       </div>
     </div>
@@ -1606,6 +1694,8 @@ function renderHome(){
     rd.onclick=open;
     rd.onkeydown=e=>{if(e.key==="Enter")open()};
   }
+  const mb2=app.querySelector("#menubtn");
+  if(mb2) mb2.onclick=openDrawer;
   const fab=app.querySelector("#fab");
   if(fab) fab.onclick=async()=>{
     const ld=loadDraftLocal();
@@ -2406,6 +2496,46 @@ function render(){
 render();
 flushQueue();
 refreshRemote();
+
+/* ================= drawer (hamburger menu) ================= */
+const APP_URL = "https://boboapp2020-design.github.io/SugarDispatch/";
+const drawerEl = document.getElementById("drawer");
+const drawerOv = document.getElementById("drawerov");
+function openDrawer(){ drawerEl.classList.add("open"); drawerOv.hidden=false; }
+function closeDrawer(){ drawerEl.classList.remove("open"); drawerOv.hidden=true; }
+drawerOv.onclick = closeDrawer;
+document.getElementById("drawerclose").onclick = closeDrawer;
+document.getElementById("sharelink").onclick = async()=>{
+  if(navigator.share){
+    try{ await navigator.share({title:"SUGAR DISPATCH", text:"ແອັບບັນທຶກການສົ່ງມອບນ້ຳຕານ", url:APP_URL}); return; }catch(e){}
+  }
+  try{ await navigator.clipboard.writeText(APP_URL); toast("✓ ຄັດລອກລິ້ງແລ້ວ"); }
+  catch(e){ toast(APP_URL); }
+};
+document.getElementById("shareqr").onclick = async()=>{
+  try{
+    const blob = await fetch(document.getElementById("qrimg").src).then(r=>r.blob());
+    const file = new File([blob], "SugarDispatch-QR.png", {type: blob.type||"image/png"});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], title:"SUGAR DISPATCH", text:APP_URL});
+      return;
+    }
+  }catch(e){}
+  document.getElementById("sharelink").click();
+};
+document.getElementById("pwsave").onclick = ()=>{
+  const me = currentUser();
+  if(!me){ toast("⚠ ກະລຸນາເຂົ້າສູ່ລະບົບກ່ອນ"); return; }
+  const oldp = document.getElementById("pwold").value;
+  const newp = document.getElementById("pwnew").value;
+  if(oldp !== me.password){ toast("⚠ ລະຫັດຜ່ານປັດຈຸບັນບໍ່ຖືກຕ້ອງ"); return; }
+  if(newp.length < 4){ toast("⚠ ລະຫັດໃໝ່ຕ້ອງຢ່າງໜ້ອຍ 4 ຕົວ"); return; }
+  me.password = newp;
+  saveUsers(); queuePush({action:"saveUsers", users});
+  audit("password_changed", "@"+me.username);
+  document.getElementById("pwold").value=""; document.getElementById("pwnew").value="";
+  toast("✓ ປ່ຽນລະຫັດຜ່ານແລ້ວ");
+};
 
 /* ================= PWA ================= */
 if("serviceWorker" in navigator){
