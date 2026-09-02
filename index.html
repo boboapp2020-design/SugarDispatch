@@ -696,7 +696,7 @@
     <div class="dbody">
       <div class="dqr">
         <img src="qr.png" alt="QR code ສຳລັບເປີດແອັບ" id="qrimg">
-        <div class="durl mono">boboapp2020-design.github.io/SugarDispatch</div>
+        <div class="durl mono" id="appurltext"></div>
       </div>
       <button class="dbtn" id="sharelink">🔗 ແຊຣ໌ລິ້ງແອັບ</button>
       <button class="dbtn alt" id="shareqr">🖼 ແຊຣ໌ QR Code</button>
@@ -2731,10 +2731,17 @@ flushQueue();
 refreshRemote();
 
 /* ================= drawer (hamburger menu) ================= */
-const APP_URL = "https://boboapp2020-design.github.io/SugarDispatch/";
+// ปรับตามโดเมนที่โฮสต์อัตโนมัติ — ย้าย GitHub/Cloudflare/โดเมนตัวเองก็ใช้ได้เลย
+const APP_URL = (location.protocol==="http:"||location.protocol==="https:")
+  ? location.origin + location.pathname.replace(/[^/]*$/, "")
+  : "https://boboapp2020-design.github.io/SugarDispatch/";
 const drawerEl = document.getElementById("drawer");
 const drawerOv = document.getElementById("drawerov");
-function openDrawer(){ drawerEl.classList.add("open"); drawerOv.hidden=false; }
+function openDrawer(){
+  drawerEl.classList.add("open"); drawerOv.hidden=false;
+  const el=document.getElementById("appurltext");
+  if(el) el.textContent = APP_URL.replace(/^https?:\/\//,"").replace(/\/$/,"");
+}
 
 /* password-change modal — opened by tapping your name after login */
 function openPwModal(){
