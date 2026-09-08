@@ -1661,7 +1661,10 @@ function renderHomeStaff(me){
       <div class="slide">
         <div class="scroll">
           ${dashHTML(records)}
-          <button class="dbtn" id="mailreport" style="margin:2px 0 14px">📧 ສົ່ງເມລລາຍງານສະຫຼຸບ</button>
+          <div style="display:flex;gap:8px;margin:2px 0 14px">
+            <button class="dbtn" id="mailreport" style="flex:1;margin:0">📧 ສົ່ງເມລ</button>
+            <button class="dbtn" id="xlsall" style="flex:1;margin:0;background:#1F7A44">📊 Excel</button>
+          </div>
           <div class="tasklabel">📥 ວຽກທີ່ ${esc(me.username)} ຕ້ອງດຳເນີນການ (${tasks.length})</div>
           ${tasks.length ? tasks.map(recCardHTML).join("") : `<div class="empty">✓ ບໍ່ມີວຽກຄ້າງ</div>`}
           <div style="text-align:center;font-size:11px;color:var(--ink-3);padding:6px 0 4px">
@@ -1737,6 +1740,13 @@ function renderHomeStaff(me){
   if(mr) mr.onclick=()=>{
     const r=buildMailReport();
     window.location.href="mailto:?subject="+encodeURIComponent(r.subject)+"&body="+encodeURIComponent(r.body);
+  };
+  const xa=app.querySelector("#xlsall");
+  if(xa) xa.onclick=()=>{
+    const all=records.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);
+    const now=new Date(); const p2=n=>String(n).padStart(2,"0");
+    const fn=`SugarDispatch-ທັງໝົດ-${now.getFullYear()}${p2(now.getMonth()+1)}${p2(now.getDate())}.csv`;
+    shareFile(fn, "text/csv;charset=utf-8", buildReportCsv(all));
   };
   app.querySelectorAll(".rec").forEach(el=>{
     const open=()=>{view={name:"detail",uid:el.dataset.uid}; render()};
